@@ -2175,5 +2175,10 @@ function generateFault(){
   },500);
 }
 </script>
+  <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/dyemind-ai/sw.js');
+}
+</script>
 </body>
 </html>
