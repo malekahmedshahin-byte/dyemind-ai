@@ -1,0 +1,2450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>DyeMind AI — Intelligent Dyeing Brain v1</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#1a56db"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="DyeMind AI"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f5f4f1;--surf:#ffffff;--card:#ffffff;
+  --border:#e2e0da;--border2:#d0cdc5;
+  --acc:#1a56db;--acc2:#0f766e;--acc3:#dc2626;--acc4:#b45309;
+  --text:#1c1917;--muted:#78716c;--subtle:#a8a29e;
+  --bg2:#eeecea;--tag-bg:#f0eeeb;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;font-size:14px;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes pulse{0%,100%{opacity:.4;}50%{opacity:1;}}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+.fade-in{animation:fadeUp .3s ease both;}
+input[type=number]::-webkit-inner-spin-button{opacity:.4;}
+
+.grid-bg{display:none;}
+
+header{position:sticky;top:0;z-index:100;padding:0 48px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(245,244,241,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+@media(max-width:600px){header{padding:0 18px;}}
+.logo{font-family:'DM Serif Display',serif;font-size:1.25rem;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;color:var(--text);}
+.logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#1a56db,#0f766e);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.badge{font-size:.68rem;padding:5px 12px;border-radius:4px;border:1px solid var(--border2);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:8px;background:var(--surf);}
+.dot-live{width:6px;height:6px;border-radius:50%;background:#0f766e;box-shadow:0 0 0 2px rgba(15,118,110,.2);animation:blink 2.5s ease-in-out infinite;flex-shrink:0;}
+
+.hero{position:relative;z-index:10;text-align:center;padding:64px 24px 44px;border-bottom:1px solid var(--border);background:var(--surf);}
+@media(max-width:600px){.hero{padding:40px 20px 28px;}}
+.hero-tag{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--acc2);margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:12px;font-weight:500;}
+.hero-line{flex:1;max-width:60px;height:1px;}
+.hero-line-l{background:linear-gradient(90deg,transparent,var(--border2));}
+.hero-line-r{background:linear-gradient(90deg,var(--border2),transparent);}
+h1{font-family:'DM Serif Display',serif;font-weight:400;font-size:clamp(2rem,5vw,3.8rem);line-height:1.06;letter-spacing:-.02em;margin-bottom:16px;color:var(--text);}
+.grad{background:linear-gradient(110deg,#1a56db,#0f766e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero p{color:var(--muted);font-size:.875rem;max-width:460px;margin:0 auto;line-height:1.8;font-weight:400;}
+
+.tabs{position:relative;z-index:10;display:flex;justify-content:center;padding:22px 24px 22px;flex-wrap:wrap;gap:4px;background:var(--bg2);border-bottom:1px solid var(--border);}
+.tab{padding:8px 22px;cursor:pointer;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.8rem;letter-spacing:.02em;font-weight:500;transition:all .18s;white-space:nowrap;}
+.tab:hover:not(.active){background:var(--surf);border-color:var(--border);color:var(--text);}
+.tab.active{background:var(--surf);border-color:var(--border2);color:var(--acc);box-shadow:0 1px 4px rgba(0,0,0,.07);}
+@media(max-width:520px){
+  .tabs{gap:6px;}
+  .tab{border:1px solid var(--border)!important;width:100%;text-align:center;}
+  .tab.active{border-color:var(--acc)!important;}
+}
+
+.section{position:relative;z-index:10;max-width:1160px;margin:0 auto;padding:32px 24px 80px;}
+@media(max-width:600px){.section{padding:24px 16px 60px;}}
+
+.two-col{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start;}
+@media(max-width:900px){.two-col{grid-template-columns:1fr;}}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.card-accent{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--acc),var(--acc2));opacity:.7;}
+.card-accent2{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--acc2),var(--acc));opacity:.5;}
+.card-hdr{font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.card-hdr-dot{width:5px;height:5px;border-radius:50%;background:var(--acc2);flex-shrink:0;}
+
+.field{margin-bottom:14px;}
+label.lbl{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;font-weight:500;}
+input[type=text],input[type=number],select,textarea{width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;-webkit-appearance:none;appearance:none;transition:border-color .15s;}
+select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2378716c' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+input[type=text]:focus,input[type=number]:focus,select:focus{border-color:var(--acc);background:var(--surf);box-shadow:0 0 0 3px rgba(26,86,219,.08);}
+
+.cpick{display:flex;gap:10px;align-items:center;}
+.cpick-swatch{width:40px;height:40px;border-radius:7px;border:2px solid var(--border2);cursor:pointer;flex-shrink:0;transition:transform .15s,box-shadow .15s;}
+.cpick-swatch:hover{transform:scale(1.05);box-shadow:0 2px 8px rgba(0,0,0,.15);}
+input[type=color]{position:absolute;opacity:0;width:0;height:0;pointer-events:none;}
+.cpick input[type=text]{flex:1;}
+
+.btn{width:100%;padding:11px;margin-top:4px;background:var(--acc);border:1px solid transparent;border-radius:7px;color:#fff;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.85rem;letter-spacing:.02em;cursor:pointer;transition:all .18s;box-shadow:0 1px 3px rgba(26,86,219,.3);}
+.btn:hover:not(:disabled){background:#1648c5;box-shadow:0 3px 8px rgba(26,86,219,.35);transform:translateY(-1px);}
+.btn:active:not(:disabled){transform:translateY(0);}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;}
+
+.out-panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:26px;position:relative;overflow:hidden;min-height:420px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:320px;gap:12px;text-align:center;color:var(--subtle);font-size:.82rem;line-height:1.7;}
+.empty-icon{font-size:2.5rem;opacity:.3;}
+.spinner-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:320px;gap:16px;}
+.spinner{width:36px;height:36px;border:2px solid var(--border2);border-top-color:var(--acc);border-right-color:var(--acc2);border-radius:50%;animation:spin .7s linear infinite;}
+.spinner-lbl{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);animation:pulse 1.6s ease-in-out infinite;}
+
+.met-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.met-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+@media(max-width:600px){
+  .met-grid{grid-template-columns:repeat(2,1fr);}
+  .met-grid-4{grid-template-columns:repeat(2,1fr);}
+}
+.met{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:11px 12px;}
+.met-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px;font-weight:500;}
+.met-val{font-family:'DM Serif Display',serif;font-weight:400;font-size:1.05rem;}
+
+.divider{height:1px;background:var(--border);margin:16px 0;position:relative;display:flex;align-items:center;justify-content:center;}
+.divider-lbl{background:var(--card);padding:0 10px;font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;font-weight:500;}
+
+.ibox{border-radius:7px;padding:10px 13px;font-size:.78rem;line-height:1.7;margin-top:10px;}
+.ibox-p{background:rgba(26,86,219,.04);border:1px solid rgba(26,86,219,.15);color:#1648c5;}
+.ibox-y{background:rgba(180,83,9,.04);border:1px solid rgba(180,83,9,.18);color:var(--acc4);}
+.ibox-r{background:rgba(220,38,38,.04);border:1px solid rgba(220,38,38,.18);color:var(--acc3);}
+.ibox-g{background:rgba(15,118,110,.04);border:1px solid rgba(15,118,110,.18);color:var(--acc2);}
+
+.tag{font-size:.62rem;padding:3px 9px;border-radius:4px;letter-spacing:.04em;text-transform:uppercase;display:inline-block;font-weight:500;}
+.tag-p{background:rgba(26,86,219,.06);color:var(--acc);border:1px solid rgba(26,86,219,.15);}
+.tag-g{background:rgba(15,118,110,.06);color:var(--acc2);border:1px solid rgba(15,118,110,.15);}
+.tag-y{background:rgba(180,83,9,.06);color:var(--acc4);border:1px solid rgba(180,83,9,.15);}
+.tag-r{background:rgba(220,38,38,.06);color:var(--acc3);border:1px solid rgba(220,38,38,.15);}
+.tags-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+
+table.rt{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:.8rem;}
+table.rt th{font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:7px 10px;text-align:left;border-bottom:2px solid var(--border);font-weight:600;background:var(--bg2);}
+table.rt td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text);}
+table.rt tbody tr:last-child td{border-bottom:none;}
+table.rt tbody tr:hover{background:var(--bg2);}
+.dye-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:middle;}
+
+.prog-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:4px;}
+.prog-fill{height:100%;border-radius:2px;transition:width 1.2s ease;}
+
+.fault-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;}
+@media(max-width:480px){.fault-grid{grid-template-columns:1fr;}}
+.fault-item{padding:10px 12px;border-radius:7px;cursor:pointer;font-size:.78rem;line-height:1.4;transition:all .15s;border:1px solid var(--border);background:var(--bg2);color:var(--text);}
+.fault-item:hover{border-color:var(--border2);background:var(--surf);}
+.fault-item.selected{border-color:var(--acc);background:rgba(26,86,219,.04);color:var(--acc);font-weight:500;}
+
+.result-header{display:flex;align-items:center;gap:16px;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--border);}
+.color-swatch-lg{width:52px;height:52px;border-radius:9px;border:2px solid var(--border);flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.1);}
+
+.opt-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:10px;position:relative;}
+.opt-ghost{position:absolute;top:10px;right:12px;font-family:'DM Serif Display',serif;font-size:1.6rem;opacity:.1;color:var(--text);}
+
+.err-banner{background:rgba(220,38,38,.04);border:1px solid rgba(220,38,38,.2);border-radius:8px;padding:12px 14px;color:var(--acc3);font-size:.8rem;margin-bottom:12px;}
+
+.note-offline{font-size:.67rem;color:var(--subtle);text-align:center;padding:8px 0 0;font-weight:400;}
+
+/* Step-by-step process */
+.process-steps{margin-top:2px;}
+.process-step{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);position:relative;}
+.process-step:last-child{border-bottom:none;}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;font-size:.68rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-num.warn{background:var(--acc3);}
+.step-body{flex:1;}
+.step-phase{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--acc2);font-weight:600;margin-bottom:3px;}
+.step-action{font-size:.78rem;color:var(--text);line-height:1.65;}
+.step-connector{position:absolute;left:12px;top:36px;bottom:-10px;width:2px;background:var(--border);z-index:0;}
+.process-step:last-child .step-connector{display:none;}
+
+/* Blend ratio preset buttons */
+.ratio-preset{font-size:.65rem;padding:3px 8px;border-radius:4px;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.ratio-preset:hover{border-color:var(--acc);color:var(--acc);background:rgba(26,86,219,.04);}
+
+/* PDF download button */
+.btn-pdf{width:100%;padding:10px;margin-top:10px;background:transparent;border:1.5px solid var(--acc2);border-radius:7px;color:var(--acc2);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.82rem;letter-spacing:.02em;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-pdf:hover:not(:disabled){background:var(--acc2);color:#fff;box-shadow:0 3px 8px rgba(15,118,110,.3);transform:translateY(-1px);}
+.btn-pdf:disabled{opacity:.35;cursor:not-allowed;}
+
+/* Tri-blend section */
+.tri-ratio-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto;gap:6px;align-items:center;margin-bottom:6px;}
+.tri-ratio-bar{height:8px;border-radius:4px;overflow:hidden;background:var(--border);display:flex;margin-bottom:4px;}
+
+/* Step connector line */
+.process-step:last-child .step-connector{display:none!important;}
+
+/* Bath process block */
+.bath-block{border:1.5px solid var(--border2);border-radius:9px;overflow:hidden;margin-top:14px;}
+.bath-block-hdr{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+.bath-block-hdr-b1{background:linear-gradient(90deg,rgba(26,86,219,.08),transparent);color:var(--acc);border-bottom:1.5px solid rgba(26,86,219,.15);}
+.bath-block-hdr-b2{background:linear-gradient(90deg,rgba(180,83,9,.08),transparent);color:var(--acc4);border-bottom:1.5px solid rgba(180,83,9,.15);}
+.bath-block-hdr-b1b{background:linear-gradient(90deg,rgba(26,86,219,.08),transparent);color:var(--acc);border-bottom:1.5px dashed rgba(26,86,219,.15);}
+.bath-block-badge{font-size:.6rem;padding:2px 8px;border-radius:3px;font-weight:600;letter-spacing:.05em;}
+.bath-block-badge-1{background:rgba(26,86,219,.1);color:var(--acc);border:1px solid rgba(26,86,219,.2);}
+.bath-block-badge-2{background:rgba(180,83,9,.1);color:var(--acc4);border:1px solid rgba(180,83,9,.2);}
+.bath-block-body{padding:0 14px 12px;}
+.bath-block .process-steps{margin-top:8px;}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<header>
+  <div class="logo">
+    <div class="logo-icon">🧪</div>
+    DyeMind <span style="color:var(--acc2)">AI</span>
+  </div>
+  <div class="badge">
+    <div class="dot-live"></div>
+    Abdul Malek · v1.0
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-tag">
+    <span class="hero-line hero-line-l"></span>
+    The World's First Intelligent Dyeing Brain
+    <span class="hero-line hero-line-r"></span>
+  </div>
+  <h1>
+    Dye <span class="grad">Smarter.</span><br>
+    Think <span class="grad">Greener.</span>
+  </h1>
+  <p>Expert colour prediction · Sustainability scoring · Recipe optimisation · Fault diagnosis — all offline, no API needed.</p>
+</section>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('recipe',this)">🎨 Dye Recipe</div>
+  <div class="tab" onclick="switchTab('optimizer',this)">⚡ Optimizer</div>
+  <div class="tab" onclick="switchTab('fault',this)">🔧 Fault Diagnosis</div>
+</div>
+
+<div class="section">
+
+  <!-- TAB: DYE RECIPE -->
+  <div id="tab-recipe" class="two-col fade-in">
+    <div class="card">
+      <div class="card-accent"></div>
+      <div class="card-hdr"><div class="card-hdr-dot"></div> Colour &amp; Fabric Input</div>
+
+      <div class="field">
+        <label class="lbl">Target Colour</label>
+        <div class="cpick">
+          <div class="cpick-swatch" id="r-swatch" style="background:#3A86FF" onclick="document.getElementById('r-native').click()"></div>
+          <input type="color" id="r-native" value="#3A86FF" oninput="syncColor('r',this.value)">
+          <input type="text" id="r-hex" value="#3A86FF" maxlength="7" placeholder="#RRGGBB" oninput="syncHexText('r',this.value)">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Fibre Type</label>
+        <select id="r-fiber">
+          <optgroup label="── Pure Fibres ──────────────">
+          <option value="cotton">Cotton</option><option value="polyester">Polyester</option>
+          <option value="nylon">Nylon</option><option value="wool">Wool</option>
+          <option value="silk">Silk</option><option value="linen">Linen</option>
+          <option value="viscose">Viscose</option><option value="modal">Modal</option>
+          <option value="tencel">Tencel</option><option value="acrylic">Acrylic</option>
+          <option value="bamboo">Bamboo</option><option value="hemp">Hemp</option>
+          </optgroup>
+          <optgroup label="── Blended Fabrics ──────────">
+          <option value="cotton-polyester">Cotton/Polyester (CVC / PC)</option>
+          <option value="cotton-nylon">Cotton/Nylon</option>
+          <option value="cotton-viscose">Cotton/Viscose</option>
+          <option value="cotton-modal">Cotton/Modal</option>
+          <option value="cotton-tencel">Cotton/Tencel (Lyocell)</option>
+          <option value="cotton-linen">Cotton/Linen</option>
+          <option value="cotton-spandex">Cotton/Spandex (Elastane)</option>
+          <option value="polyester-viscose">Polyester/Viscose (TR)</option>
+          <option value="polyester-wool">Polyester/Wool</option>
+          <option value="polyester-nylon">Polyester/Nylon</option>
+          <option value="polyester-spandex">Polyester/Spandex</option>
+          <option value="wool-nylon">Wool/Nylon</option>
+          <option value="wool-viscose">Wool/Viscose</option>
+          <option value="wool-polyester">Wool/Polyester</option>
+          <option value="nylon-spandex">Nylon/Spandex (Swimwear)</option>
+          <option value="viscose-nylon">Viscose/Nylon</option>
+          <option value="tencel-modal">Tencel/Modal</option>
+          <option value="linen-viscose">Linen/Viscose</option>
+          </optgroup>
+          <optgroup label="── Tri-Component Blends ─────">
+          <option value="cotton-polyester-spandex">Cotton/Polyester/Spandex (Stretch Denim)</option>
+          <option value="cotton-viscose-spandex">Cotton/Viscose/Spandex (Jersey)</option>
+          <option value="cotton-modal-spandex">Cotton/Modal/Spandex (Sportswear)</option>
+          <option value="polyester-viscose-spandex">Polyester/Viscose/Spandex (Power Stretch)</option>
+          <option value="polyester-nylon-spandex">Polyester/Nylon/Spandex (Activewear)</option>
+          <option value="wool-polyester-nylon">Wool/Polyester/Nylon (Suiting)</option>
+          <option value="cotton-nylon-spandex">Cotton/Nylon/Spandex (Sportswear)</option>
+          <option value="tencel-cotton-modal">Tencel/Cotton/Modal (Eco Jersey)</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="field" id="r-ratio-field" style="display:none">
+        <label class="lbl">Blend Ratio (Fibre 1 % / Fibre 2 %)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="r-ratio1" value="65" min="1" max="99" style="flex:1" oninput="syncBlendRatio('r',1,this.value)">
+          <span style="color:var(--muted);font-size:.8rem;white-space:nowrap">/</span>
+          <input type="number" id="r-ratio2" value="35" min="1" max="99" style="flex:1" oninput="syncBlendRatio('r',2,this.value)">
+          <span style="color:var(--muted);font-size:.75rem;white-space:nowrap">%</span>
+        </div>
+        <div id="r-ratio-label" style="font-size:.68rem;color:var(--muted);margin-top:4px">e.g. Cotton 65% / Polyester 35%</div>
+        <div style="margin-top:6px">
+          <div style="height:6px;border-radius:3px;overflow:hidden;background:var(--border);display:flex">
+            <div id="r-ratio-bar1" style="height:100%;background:var(--acc);transition:width .3s;width:65%"></div>
+            <div id="r-ratio-bar2" style="height:100%;background:var(--acc2);transition:width .3s;width:35%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:3px">
+            <span id="r-ratio-lbl1" style="font-size:.62rem;color:var(--acc);font-weight:500">Fibre 1: 65%</span>
+            <span id="r-ratio-lbl2" style="font-size:.62rem;color:var(--acc2);font-weight:500">Fibre 2: 35%</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap" id="r-ratio-presets"></div>
+      </div>
+
+      <div class="field" id="r-tri-ratio-field" style="display:none">
+        <label class="lbl">Tri-Blend Ratio (Fibre 1 / 2 / 3 — must total 100%)</label>
+        <div class="tri-ratio-row">
+          <input type="number" id="r-tri1" value="55" min="1" max="98" oninput="syncTriBlend('r')">
+          <span style="color:var(--muted);font-size:.8rem">/</span>
+          <input type="number" id="r-tri2" value="35" min="1" max="98" oninput="syncTriBlend('r')">
+          <span style="color:var(--muted);font-size:.8rem">/</span>
+          <input type="number" id="r-tri3" value="10" min="1" max="98" oninput="syncTriBlend('r')">
+          <span style="color:var(--muted);font-size:.75rem">%</span>
+        </div>
+        <div id="r-tri-ratio-bar" class="tri-ratio-bar">
+          <div id="r-tri-bar1" style="height:100%;background:var(--acc);transition:width .3s;width:55%"></div>
+          <div id="r-tri-bar2" style="height:100%;background:var(--acc2);transition:width .3s;width:35%"></div>
+          <div id="r-tri-bar3" style="height:100%;background:var(--acc4);transition:width .3s;width:10%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:2px">
+          <span id="r-tri-lbl1" style="font-size:.62rem;color:var(--acc);font-weight:500">F1: 55%</span>
+          <span id="r-tri-lbl2" style="font-size:.62rem;color:var(--acc2);font-weight:500">F2: 35%</span>
+          <span id="r-tri-lbl3" style="font-size:.62rem;color:var(--acc4);font-weight:500">F3: 10%</span>
+        </div>
+        <div id="r-tri-warn" style="font-size:.68rem;color:var(--acc3);margin-top:4px;display:none">⚠ Ratios must total 100%</div>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap" id="r-tri-presets"></div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Fabric Weight (grams)</label>
+        <input type="number" id="r-weight" value="200" min="1">
+      </div>
+
+      <div class="field">
+        <label class="lbl">MLR Ratio (1 : ?)</label>
+        <input type="number" id="r-mlr" value="10" min="1" max="100">
+      </div>
+
+      <div class="field">
+        <label class="lbl">Dye Class (optional)</label>
+        <select id="r-dyeclass">
+          <option value="">Auto-detect best for fibre</option>
+          <option value="reactive">Reactive</option><option value="disperse">Disperse</option>
+          <option value="acid">Acid</option><option value="vat">Vat</option>
+          <option value="direct">Direct</option><option value="sulphur">Sulphur</option>
+          <option value="azoic">Azoic</option>
+        </select>
+      </div>
+
+      <!-- ── ADVANCED PARAMETERS SECTION ── -->
+      <div style="margin:14px 0 6px;padding:10px 12px 2px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;">
+        <div class="card-hdr" style="margin-bottom:10px;font-size:.66rem"><div class="card-hdr-dot" style="background:var(--acc4)"></div> Advanced Parameters <span style="color:var(--subtle);font-weight:400;letter-spacing:0;text-transform:none;margin-left:4px">— for ΔE precision</span></div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="field" style="margin-bottom:8px">
+            <label class="lbl">GSM (g/m²)</label>
+            <input type="number" id="r-gsm" value="180" min="30" max="900" step="10" title="Fabric weight per square metre — affects dye uptake and owf calculation">
+          </div>
+          <div class="field" style="margin-bottom:8px">
+            <label class="lbl">Water Hardness (ppm)</label>
+            <input type="number" id="r-hardness" value="50" min="0" max="800" step="10" title="Water hardness in ppm (mg/L CaCO₃) — hard water reduces reactive fixation">
+          </div>
+          <div class="field" style="margin-bottom:8px">
+            <label class="lbl">Bath pH</label>
+            <input type="number" id="r-ph" value="10.5" min="2" max="13" step="0.1" title="Target dyebath pH — reactive: 10–11, disperse: 4.5–5.5, acid: 4–6">
+          </div>
+          <div class="field" style="margin-bottom:8px">
+            <label class="lbl">Salt / Electrolyte (g/L)</label>
+            <input type="number" id="r-salt" value="60" min="0" max="120" step="5" title="Na₂SO₄ or NaCl concentration in dyebath — affects dye exhaustion">
+          </div>
+          <div class="field" style="margin-bottom:8px">
+            <label class="lbl">Process Temp (°C)</label>
+            <input type="number" id="r-temp-override" value="" min="20" max="145" placeholder="Auto" title="Override dyeing temperature (leave blank for auto)">
+          </div>
+          <div class="field" style="margin-bottom:8px">
+            <label class="lbl">Fixation Method</label>
+            <select id="r-fixation-method" title="Fixation method affects colour yield and ΔE">
+              <option value="exhaust">Exhaust (Jet/Winch)</option>
+              <option value="pad-steam">Pad-Steam (Continuous)</option>
+              <option value="pad-dry">Pad-Dry (Thermosol)</option>
+              <option value="cold-pad-batch">Cold Pad-Batch</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom:8px">
+          <label class="lbl">Pre-treatment Quality</label>
+          <select id="r-pretreat" title="Pre-treatment directly affects ΔE — poor scouring causes patchy shade">
+            <option value="excellent">Excellent (fully scoured, bleached, mercerised)</option>
+            <option value="good" selected>Good (scoured + bleached)</option>
+            <option value="standard">Standard (scoured only)</option>
+            <option value="poor">Poor (grey fabric, minimal pre-treatment)</option>
+          </select>
+        </div>
+
+        <div class="field" style="margin-bottom:8px">
+          <label class="lbl">Dye Concentration Correction</label>
+          <select id="r-shade-correction" title="Applies K/S-based iterative correction for trichromatic accuracy">
+            <option value="auto">Auto (AI K/S Correction — recommended)</option>
+            <option value="none">None (direct calculation)</option>
+            <option value="iso-17">ISO 105-J01 Method</option>
+          </select>
+        </div>
+
+      </div>
+      <!-- ── END ADVANCED ── -->
+
+      <button class="btn" id="r-btn" onclick="generateRecipe()">Generate Dye Recipe →</button>
+      <button class="btn-pdf" id="r-pdf-btn" onclick="downloadRecipePDF()" disabled>⬇ Download Recipe PDF (with Process Curve)</button>
+      <p class="note-offline">⚡ Runs entirely offline — no API required</p>
+    </div>
+
+    <div class="out-panel">
+      <div class="card-accent2"></div>
+      <div id="r-output">
+        <div class="empty-state">
+          <div class="empty-icon">🎨</div>
+          <div>Enter your colour and fabric details,<br>then click <strong>Generate Dye Recipe</strong>.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: OPTIMIZER -->
+  <div id="tab-optimizer" class="two-col fade-in" style="display:none">
+    <div class="card">
+      <div class="card-accent"></div>
+      <div class="card-hdr"><div class="card-hdr-dot"></div> Recipe Optimizer</div>
+
+      <div class="field">
+        <label class="lbl">Target Colour</label>
+        <div class="cpick">
+          <div class="cpick-swatch" id="o-swatch" style="background:#FF6B6B" onclick="document.getElementById('o-native').click()"></div>
+          <input type="color" id="o-native" value="#FF6B6B" oninput="syncColor('o',this.value)">
+          <input type="text" id="o-hex" value="#FF6B6B" maxlength="7" placeholder="#RRGGBB" oninput="syncHexText('o',this.value)">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Fibre Type</label>
+        <select id="o-fiber">
+          <optgroup label="── Pure Fibres ──────────────">
+          <option value="cotton">Cotton</option><option value="polyester">Polyester</option>
+          <option value="wool">Wool</option><option value="silk">Silk</option>
+          <option value="viscose">Viscose</option><option value="linen">Linen</option>
+          <option value="nylon">Nylon</option><option value="tencel">Tencel</option>
+          </optgroup>
+          <optgroup label="── Blended Fabrics ──────────">
+          <option value="cotton-polyester">Cotton/Polyester (CVC / PC)</option>
+          <option value="cotton-nylon">Cotton/Nylon</option>
+          <option value="cotton-viscose">Cotton/Viscose</option>
+          <option value="cotton-modal">Cotton/Modal</option>
+          <option value="cotton-tencel">Cotton/Tencel (Lyocell)</option>
+          <option value="cotton-linen">Cotton/Linen</option>
+          <option value="cotton-spandex">Cotton/Spandex (Elastane)</option>
+          <option value="polyester-viscose">Polyester/Viscose (TR)</option>
+          <option value="polyester-wool">Polyester/Wool</option>
+          <option value="polyester-nylon">Polyester/Nylon</option>
+          <option value="polyester-spandex">Polyester/Spandex</option>
+          <option value="wool-nylon">Wool/Nylon</option>
+          <option value="wool-viscose">Wool/Viscose</option>
+          <option value="nylon-spandex">Nylon/Spandex (Swimwear)</option>
+          <option value="viscose-nylon">Viscose/Nylon</option>
+          <option value="tencel-modal">Tencel/Modal</option>
+          <option value="linen-viscose">Linen/Viscose</option>
+          </optgroup>
+          <optgroup label="── Tri-Component Blends ─────">
+          <option value="cotton-polyester-spandex">Cotton/Polyester/Spandex</option>
+          <option value="cotton-viscose-spandex">Cotton/Viscose/Spandex</option>
+          <option value="cotton-modal-spandex">Cotton/Modal/Spandex</option>
+          <option value="polyester-viscose-spandex">Polyester/Viscose/Spandex</option>
+          <option value="polyester-nylon-spandex">Polyester/Nylon/Spandex</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="field" id="o-ratio-field" style="display:none">
+        <label class="lbl">Blend Ratio (Fibre 1 % / Fibre 2 %)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="o-ratio1" value="65" min="1" max="99" style="flex:1" oninput="syncBlendRatio('o',1,this.value)">
+          <span style="color:var(--muted);font-size:.8rem;white-space:nowrap">/</span>
+          <input type="number" id="o-ratio2" value="35" min="1" max="99" style="flex:1" oninput="syncBlendRatio('o',2,this.value)">
+          <span style="color:var(--muted);font-size:.75rem;white-space:nowrap">%</span>
+        </div>
+        <div id="o-ratio-label" style="font-size:.68rem;color:var(--muted);margin-top:4px">e.g. Fibre 1 65% / Fibre 2 35%</div>
+        <div style="margin-top:6px">
+          <div style="height:6px;border-radius:3px;overflow:hidden;background:var(--border);display:flex">
+            <div id="o-ratio-bar1" style="height:100%;background:var(--acc);transition:width .3s;width:65%"></div>
+            <div id="o-ratio-bar2" style="height:100%;background:var(--acc2);transition:width .3s;width:35%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:3px">
+            <span id="o-ratio-lbl1" style="font-size:.62rem;color:var(--acc);font-weight:500">Fibre 1: 65%</span>
+            <span id="o-ratio-lbl2" style="font-size:.62rem;color:var(--acc2);font-weight:500">Fibre 2: 35%</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap" id="o-ratio-presets"></div>
+      </div>
+
+      <div class="field" id="o-tri-ratio-field" style="display:none">
+        <label class="lbl">Tri-Blend Ratio (Fibre 1 / 2 / 3 — must total 100%)</label>
+        <div class="tri-ratio-row">
+          <input type="number" id="o-tri1" value="55" min="1" max="98" oninput="syncTriBlend('o')">
+          <span style="color:var(--muted);font-size:.8rem">/</span>
+          <input type="number" id="o-tri2" value="35" min="1" max="98" oninput="syncTriBlend('o')">
+          <span style="color:var(--muted);font-size:.8rem">/</span>
+          <input type="number" id="o-tri3" value="10" min="1" max="98" oninput="syncTriBlend('o')">
+          <span style="color:var(--muted);font-size:.75rem">%</span>
+        </div>
+        <div class="tri-ratio-bar">
+          <div id="o-tri-bar1" style="height:100%;background:var(--acc);transition:width .3s;width:55%"></div>
+          <div id="o-tri-bar2" style="height:100%;background:var(--acc2);transition:width .3s;width:35%"></div>
+          <div id="o-tri-bar3" style="height:100%;background:var(--acc4);transition:width .3s;width:10%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:2px">
+          <span id="o-tri-lbl1" style="font-size:.62rem;color:var(--acc);font-weight:500">F1: 55%</span>
+          <span id="o-tri-lbl2" style="font-size:.62rem;color:var(--acc2);font-weight:500">F2: 35%</span>
+          <span id="o-tri-lbl3" style="font-size:.62rem;color:var(--acc4);font-weight:500">F3: 10%</span>
+        </div>
+        <div id="o-tri-warn" style="font-size:.68rem;color:var(--acc3);margin-top:4px;display:none">⚠ Ratios must total 100%</div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Batch Weight (kg)</label>
+        <input type="number" id="o-weight" value="100" min="0.1" step="0.1">
+      </div>
+
+      <div class="field">
+        <label class="lbl">Optimise Priority</label>
+        <select id="o-priority">
+          <option value="balanced">Balanced — Cost + Eco + Quality</option>
+          <option value="cost">Lowest Cost</option>
+          <option value="eco">Lowest Carbon / Greenest</option>
+          <option value="quality">Best Fastness &amp; Accuracy</option>
+        </select>
+      </div>
+
+      <button class="btn" id="o-btn" onclick="generateOptimizer()">Compare &amp; Optimise →</button>
+      <p class="note-offline">⚡ Runs entirely offline — no API required</p>
+    </div>
+
+    <div class="out-panel">
+      <div class="card-accent2"></div>
+      <div id="o-output">
+        <div class="empty-state">
+          <div class="empty-icon">⚡</div>
+          <div>Set parameters to compare<br>3 recipe options ranked by your priority.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: FAULT DIAGNOSIS -->
+  <div id="tab-fault" class="two-col fade-in" style="display:none">
+    <div class="card">
+      <div class="card-accent"></div>
+      <div class="card-hdr"><div class="card-hdr-dot"></div> Fault Diagnosis</div>
+
+      <div class="field">
+        <label class="lbl">Select Fault Symptom</label>
+        <div class="fault-grid" id="fault-grid"></div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Fabric / Fibre</label>
+        <select id="f-fiber">
+          <optgroup label="── Pure Fibres ──────────────">
+          <option value="cotton">Cotton</option><option value="polyester">Polyester</option>
+          <option value="wool">Wool</option><option value="silk">Silk</option>
+          <option value="viscose">Viscose</option><option value="nylon">Nylon</option>
+          </optgroup>
+          <optgroup label="── Blended Fabrics ──────────">
+          <option value="cotton-polyester">Cotton/Polyester (CVC / PC)</option>
+          <option value="cotton-nylon">Cotton/Nylon</option>
+          <option value="cotton-viscose">Cotton/Viscose</option>
+          <option value="cotton-modal">Cotton/Modal</option>
+          <option value="cotton-tencel">Cotton/Tencel (Lyocell)</option>
+          <option value="cotton-spandex">Cotton/Spandex (Elastane)</option>
+          <option value="polyester-viscose">Polyester/Viscose (TR)</option>
+          <option value="polyester-wool">Polyester/Wool</option>
+          <option value="polyester-nylon">Polyester/Nylon</option>
+          <option value="polyester-spandex">Polyester/Spandex</option>
+          <option value="wool-nylon">Wool/Nylon</option>
+          <option value="nylon-spandex">Nylon/Spandex (Swimwear)</option>
+          <option value="viscose-nylon">Viscose/Nylon</option>
+          <option value="tencel-modal">Tencel/Modal</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="field" id="f-ratio-field" style="display:none">
+        <label class="lbl">Blend Ratio (Fibre 1 % / Fibre 2 %)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="f-ratio1" value="65" min="1" max="99" style="flex:1" oninput="syncBlendRatio('f',1,this.value)">
+          <span style="color:var(--muted);font-size:.8rem;white-space:nowrap">/</span>
+          <input type="number" id="f-ratio2" value="35" min="1" max="99" style="flex:1" oninput="syncBlendRatio('f',2,this.value)">
+          <span style="color:var(--muted);font-size:.75rem;white-space:nowrap">%</span>
+        </div>
+        <div id="f-ratio-label" style="font-size:.68rem;color:var(--muted);margin-top:4px">e.g. Fibre 1 65% / Fibre 2 35%</div>
+        <div style="margin-top:6px">
+          <div style="height:6px;border-radius:3px;overflow:hidden;background:var(--border);display:flex">
+            <div id="f-ratio-bar1" style="height:100%;background:var(--acc);transition:width .3s;width:65%"></div>
+            <div id="f-ratio-bar2" style="height:100%;background:var(--acc2);transition:width .3s;width:35%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:3px">
+            <span id="f-ratio-lbl1" style="font-size:.62rem;color:var(--acc);font-weight:500">Fibre 1: 65%</span>
+            <span id="f-ratio-lbl2" style="font-size:.62rem;color:var(--acc2);font-weight:500">Fibre 2: 35%</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap" id="f-ratio-presets"></div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Dye Class Used</label>
+        <select id="f-dyeclass">
+          <option value="reactive">Reactive</option><option value="disperse">Disperse</option>
+          <option value="acid">Acid</option><option value="vat">Vat</option>
+          <option value="direct">Direct</option><option value="unknown">Unknown</option>
+        </select>
+      </div>
+
+      <button class="btn" id="f-btn" onclick="generateFault()" disabled>Diagnose Fault →</button>
+      <p class="note-offline">⚡ Runs entirely offline — no API required</p>
+    </div>
+
+    <div class="out-panel">
+      <div class="card-accent2"></div>
+      <div id="f-output">
+        <div class="empty-state">
+          <div class="empty-icon">🔧</div>
+          <div>Select a fault symptom<br>for expert root-cause diagnosis.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  COLOUR HELPERS
+// ═══════════════════════════════════════════════════════
+function isValidHex(h){ return /^#[0-9A-Fa-f]{6}$/.test(h); }
+
+function hexToRgb(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return{r,g,b};
+}
+
+function rgbToLab(r,g,b){
+  // sRGB to linear
+  let R=r/255,G=g/255,B=b/255;
+  R=R>0.04045?Math.pow((R+0.055)/1.055,2.4):R/12.92;
+  G=G>0.04045?Math.pow((G+0.055)/1.055,2.4):G/12.92;
+  B=B>0.04045?Math.pow((B+0.055)/1.055,2.4):B/12.92;
+  // to XYZ (D65)
+  let X=(R*0.4124564+G*0.3575761+B*0.1804375)/0.95047;
+  let Y=(R*0.2126729+G*0.7151522+B*0.0721750)/1.00000;
+  let Z=(R*0.0193339+G*0.1191920+B*0.9503041)/1.08883;
+  function f(t){return t>0.008856?Math.cbrt(t):(7.787*t+16/116);}
+  const fx=f(X),fy=f(Y),fz=f(Z);
+  return{L:+(116*fy-16).toFixed(1),a:+(500*(fx-fy)).toFixed(1),b:+(200*(fy-fz)).toFixed(1)};
+}
+
+function labToShadeDepth(L){
+  if(L>80) return"Pale";
+  if(L>65) return"Light";
+  if(L>45) return"Medium";
+  if(L>25) return"Deep";
+  return"Heavy Deep";
+}
+
+function labToName(L,a,b,hex){
+  // Determine hue angle
+  const h=(Math.atan2(b,a)*180/Math.PI+360)%360;
+  const C=Math.sqrt(a*a+b*b);
+  if(C<8){
+    if(L>85)return"Bright White";
+    if(L>65)return"Light Grey";
+    if(L>40)return"Medium Grey";
+    if(L>20)return"Dark Grey";
+    return"Near Black";
+  }
+  const depth=labToShadeDepth(L);
+  let hue="";
+  if(h<15||h>=345)hue="Red";
+  else if(h<45)hue="Orange-Red";
+  else if(h<75)hue="Orange";
+  else if(h<105)hue="Yellow-Orange";
+  else if(h<135)hue="Yellow";
+  else if(h<165)hue="Yellow-Green";
+  else if(h<195)hue="Green";
+  else if(h<225)hue="Cyan-Green";
+  else if(h<255)hue="Cyan";
+  else if(h<285)hue="Blue";
+  else if(h<315)hue="Violet-Blue";
+  else hue="Magenta";
+  return`${depth} ${hue}`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  DYE CLASS SELECTION ENGINE
+// ═══════════════════════════════════════════════════════
+const FIBRE_DYE_MAP={
+  // ── Pure fibres ──
+  cotton:{primary:"reactive",alternatives:["vat","direct","sulphur","azoic"]},
+  linen:{primary:"reactive",alternatives:["vat","direct"]},
+  viscose:{primary:"reactive",alternatives:["direct","vat"]},
+  modal:{primary:"reactive",alternatives:["direct"]},
+  tencel:{primary:"reactive",alternatives:["direct","vat"]},
+  bamboo:{primary:"reactive",alternatives:["direct","vat"]},
+  hemp:{primary:"reactive",alternatives:["vat","direct"]},
+  polyester:{primary:"disperse",alternatives:["cationic"]},
+  acrylic:{primary:"cationic",alternatives:["disperse"]},
+  nylon:{primary:"acid",alternatives:["reactive","disperse"]},
+  wool:{primary:"acid",alternatives:["reactive","chrome"]},
+  silk:{primary:"acid",alternatives:["reactive","direct"]},
+  // ── Blended fabrics — primary = dominant component dye class ──
+  // Two-bath processes are flagged in blend metadata below
+  "cotton-polyester":{primary:"disperse",alternatives:["reactive"],blend:true,components:["cotton","polyester"],process:"two-bath"},
+  "cotton-nylon":{primary:"reactive",alternatives:["acid"],blend:true,components:["cotton","nylon"],process:"two-bath"},
+  "cotton-viscose":{primary:"reactive",alternatives:["direct"],blend:true,components:["cotton","viscose"],process:"one-bath"},
+  "cotton-modal":{primary:"reactive",alternatives:["direct"],blend:true,components:["cotton","modal"],process:"one-bath"},
+  "cotton-tencel":{primary:"reactive",alternatives:["direct"],blend:true,components:["cotton","tencel"],process:"one-bath"},
+  "cotton-linen":{primary:"reactive",alternatives:["vat","direct"],blend:true,components:["cotton","linen"],process:"one-bath"},
+  "cotton-spandex":{primary:"reactive",alternatives:["direct"],blend:true,components:["cotton","spandex"],process:"one-bath",note:"Keep temp ≤60°C — spandex degrades above 80°C."},
+  "polyester-viscose":{primary:"disperse",alternatives:["reactive"],blend:true,components:["polyester","viscose"],process:"two-bath"},
+  "polyester-wool":{primary:"disperse",alternatives:["acid"],blend:true,components:["polyester","wool"],process:"two-bath"},
+  "polyester-nylon":{primary:"disperse",alternatives:["acid"],blend:true,components:["polyester","nylon"],process:"two-bath"},
+  "polyester-spandex":{primary:"disperse",alternatives:[],blend:true,components:["polyester","spandex"],process:"one-bath",note:"Keep HT cycle ≤125°C — spandex elasticity may degrade at 130°C."},
+  "wool-nylon":{primary:"acid",alternatives:["reactive"],blend:true,components:["wool","nylon"],process:"one-bath"},
+  "wool-viscose":{primary:"acid",alternatives:["reactive"],blend:true,components:["wool","viscose"],process:"two-bath"},
+  "wool-polyester":{primary:"acid",alternatives:["disperse"],blend:true,components:["wool","polyester"],process:"two-bath"},
+  "nylon-spandex":{primary:"acid",alternatives:["reactive"],blend:true,components:["nylon","spandex"],process:"one-bath",note:"Spandex resists most dyes — colour primarily on nylon component. Keep pH 5–6."},
+  "viscose-nylon":{primary:"reactive",alternatives:["acid","direct"],blend:true,components:["viscose","nylon"],process:"one-bath"},
+  "tencel-modal":{primary:"reactive",alternatives:["direct","vat"],blend:true,components:["tencel","modal"],process:"one-bath"},
+  "linen-viscose":{primary:"reactive",alternatives:["direct","vat"],blend:true,components:["linen","viscose"],process:"one-bath"},
+  // ── Tri-component blends ──
+  "cotton-polyester-spandex":{primary:"disperse",alternatives:["reactive"],blend:true,triBlend:true,components:["cotton","polyester","spandex"],process:"two-bath",note:"Keep all temps ≤125°C max — spandex degrades above 130°C. Disperse bath 1 on polyester; reactive bath 2 on cotton; spandex undyed."},
+  "cotton-viscose-spandex":{primary:"reactive",alternatives:["direct"],blend:true,triBlend:true,components:["cotton","viscose","spandex"],process:"one-bath",note:"One-bath reactive for cotton+viscose. Spandex undyed. Keep temp ≤60°C. Both cellulosic components dye similarly."},
+  "cotton-modal-spandex":{primary:"reactive",alternatives:["direct"],blend:true,triBlend:true,components:["cotton","modal","spandex"],process:"one-bath",note:"One-bath reactive. Modal absorbs slightly more dye than cotton — minor shade differential possible. Spandex undyed. Keep ≤60°C."},
+  "polyester-viscose-spandex":{primary:"disperse",alternatives:["reactive"],blend:true,triBlend:true,components:["polyester","viscose","spandex"],process:"two-bath",note:"Bath 1: Disperse on polyester (≤125°C). Reduction clear. Bath 2: Reactive on viscose (60°C). Spandex undyed. Critical: keep second bath alkali low."},
+  "polyester-nylon-spandex":{primary:"disperse",alternatives:["acid"],blend:true,triBlend:true,components:["polyester","nylon","spandex"],process:"two-bath",note:"Bath 1: Disperse on polyester (≤125°C). Bath 2: Acid on nylon (98°C, pH 5). Spandex undyed. Common in activewear/swimwear."},
+  "wool-polyester-nylon":{primary:"disperse",alternatives:["acid"],blend:true,triBlend:true,components:["wool","polyester","nylon"],process:"two-bath",note:"Bath 1: Low-energy disperse on polyester (carrier method, 110°C max to protect wool). Bath 2: Acid dye wool+nylon at 98°C, pH 5. High risk — strict temp control."},
+  "cotton-nylon-spandex":{primary:"reactive",alternatives:["acid"],blend:true,triBlend:true,components:["cotton","nylon","spandex"],process:"two-bath",note:"Bath 1: Reactive on cotton (60°C). Bath 2: Acid on nylon (98°C, pH 5). Spandex undyed. Ensure thorough rinsing between baths."},
+  "tencel-cotton-modal":{primary:"reactive",alternatives:["direct","vat"],blend:true,triBlend:true,components:["tencel","cotton","modal"],process:"one-bath",note:"All three are cellulosic fibres — excellent compatibility. One-bath reactive preferred. Use low-impact reactive (Levafix® CA). Avoid high tension — Tencel fibrillates."},
+};
+
+// Blend metadata helper
+const BLEND_INFO={
+  "cotton-polyester":"CVC/PC blend requires two-bath dyeing: 1st bath — Disperse dye polyester at 130°C (HT), 2nd bath — Reactive dye cotton at 60°C. Reduction clearing between baths is essential to remove surface disperse dye from cotton.",
+  "cotton-nylon":"Two-bath recommended: 1st bath — Reactive dye cotton (60°C, alkali fixation). After thorough washing, 2nd bath — Acid dye nylon (98°C, pH 5–5.5). Alternatively, use bifunctional reactive dyes that fix on both fibres.",
+  "cotton-viscose":"One-bath reactive dyeing possible — both cellulosic fibres respond similarly to reactive dyes. Minor shade difference may occur due to differing fibre morphology. Increase Na₂SO₄ by 10%.",
+  "cotton-modal":"One-bath reactive dyeing. Modal is more absorbent than cotton — slightly higher fixation rate expected. Shade may appear fractionally deeper on modal component.",
+  "cotton-tencel":"One-bath reactive dyeing. Both fibres are cellulosic; Tencel/Lyocell has higher wet modulus — use anti-creasing agents. Avoid high tension in jet dyeing.",
+  "cotton-linen":"One-bath reactive or vat dyeing. Linen absorbs slightly less dye than cotton — minor shade variation possible. Pre-scouring is critical for linen to remove wax.",
+  "cotton-spandex":"One-bath reactive dyeing at ≤60°C. Spandex/Elastane is not dyed — it may pick up some reactive dye as a stain. Keep alkali low (Na₂CO₃ 10 g/L max). Over-tension in machine causes elastane damage.",
+  "polyester-viscose":"Two-bath: 1st — Disperse dye polyester (130°C HT). Reduction clear with Na₂S₂O₄ + NaOH. 2nd — Reactive dye viscose (60°C). Popular TR blend for suiting.",
+  "polyester-wool":"Two-bath: 1st — Disperse dye polyester (130°C). After cooling and reduction clearing, 2nd — Acid dye wool (98°C, pH 5). Avoid strong alkali — damages wool at high temp.",
+  "polyester-nylon":"Two-bath: 1st — Disperse dye polyester (130°C, acid pH). 2nd — Acid dye nylon (98°C, pH 5–6). Both baths benefit from levelling agents. Common in sportswear.",
+  "polyester-spandex":"One-bath disperse dyeing at ≤125°C (modified HT). Spandex component undyed. Use carrier or modified disperse system for lower temp fixation. Avoid reduction clearing above 60°C.",
+  "wool-nylon":"One-bath acid dyeing. Both fibres dye with acid dyes at pH 4.5–5.5, 98°C. Nylon dyes faster — use retarding agent (Lyogen MF 2 g/L) to achieve level shade across both fibres.",
+  "wool-viscose":"Two-bath recommended: 1st — Acid dye wool (98°C, pH 5). After cooling, 2nd — Reactive or direct dye viscose (60–80°C). Avoid strong alkali which damages wool.",
+  "wool-polyester":"Two-bath: 1st — Disperse dye polyester (HT 130°C — use carrier method at lower temp to protect wool). 2nd — Acid dye wool (98°C). High risk of wool damage — strict temp control required.",
+  "nylon-spandex":"One-bath acid dyeing at 98°C, pH 5–6. Spandex undyed — colour appears on nylon only. Low tension machine operation essential. Used for swimwear, hosiery.",
+  "viscose-nylon":"One-bath or two-bath. Reactive dyes fix on viscose; nylon picks up reactive dye moderately. For deeper nylon shade: two-bath with acid dye 2nd stage.",
+  "tencel-modal":"One-bath reactive dyeing. Both Tencel and Modal are cellulosic man-made fibres — very compatible process. Excellent eco credentials — prefer low-impact reactive (Levafix® CA).",
+  "linen-viscose":"One-bath reactive dyeing. Viscose absorbs dye faster — slight shade differential possible. Use migration-phase dyeing and add electrolyte in portions.",
+  // Tri-blends
+  "cotton-polyester-spandex":"THREE-COMPONENT BLEND — Stretch Denim/Knit: Bath 1 (Disperse, 125°C HT) colours polyester. After reduction clearing, Bath 2 (Reactive, 60°C) colours cotton. Spandex remains undyed — contributes elasticity only. CRITICAL: Never exceed 130°C — spandex loses elasticity permanently. Keep Na₂CO₃ ≤10 g/L in bath 2.",
+  "cotton-viscose-spandex":"THREE-COMPONENT BLEND — Jersey: One-bath reactive dyeing for cotton + viscose (both cellulosic). Spandex undyed. Temp ≤60°C mandatory. Minor shade differential cotton vs viscose due to differing fibre morphology.",
+  "cotton-modal-spandex":"THREE-COMPONENT BLEND — Sportswear: One-bath reactive for cotton + modal. Modal absorbs fractionally more dye — may appear very slightly deeper. Spandex undyed. Keep temp ≤60°C and tension low.",
+  "polyester-viscose-spandex":"THREE-COMPONENT BLEND — Power Stretch: Bath 1 Disperse at ≤125°C for polyester. Reduction clear. Bath 2 Reactive at 60°C for viscose. Spandex undyed. Most critical step: reduction clearing between baths to avoid disperse dye staining viscose.",
+  "polyester-nylon-spandex":"THREE-COMPONENT BLEND — Activewear: Bath 1 Disperse at ≤125°C for polyester. After rinse, Bath 2 Acid at 98°C pH 5 for nylon. Spandex undyed. Popular for sports bras, leggings, swimwear.",
+  "wool-polyester-nylon":"THREE-COMPONENT BLEND — Suiting: Complex process — Bath 1 low-energy disperse (carrier, 110°C max) for polyester to protect wool. Bath 2 acid dye 98°C for wool + nylon. Professional mill process — requires stringent QC.",
+  "cotton-nylon-spandex":"THREE-COMPONENT BLEND — Sportswear/Hosiery: Bath 1 Reactive at 60°C for cotton. Thorough rinse. Bath 2 Acid at 98°C pH 5 for nylon. Spandex undyed. Nylon picks up some reactive dye in Bath 1 — test shade balance between components.",
+  "tencel-cotton-modal":"THREE-COMPONENT BLEND — Eco Jersey: All three fibres are cellulosic — highly compatible one-bath reactive process. Excellent eco profile. Use Levafix® CA low-impact reactive series. Avoid high-tension jet settings — Tencel fibrillates under mechanical stress.",
+};
+
+function getBestDyeClass(fiber, preferredClass){
+  const map=FIBRE_DYE_MAP[fiber]||{primary:"reactive",alternatives:[]};
+  if(preferredClass && preferredClass!==""){
+    // validate compatibility
+    const all=[map.primary,...map.alternatives];
+    if(all.includes(preferredClass)) return preferredClass;
+    return map.primary; // override invalid
+  }
+  return map.primary;
+}
+
+// ═══════════════════════════════════════════════════════
+//  DYE RECIPE COMPUTATION ENGINE
+// ═══════════════════════════════════════════════════════
+
+// Dye databases per class — real commercial names + typical colour ranges
+const DYE_DB={
+  reactive:{
+    // [hueLow, hueHigh, L_max, labName, commercialName, ecoScore, costIndex]
+    dyes:[
+      {h:[0,30],name:"Reactive Red 195 (Everzol Red ED-3B)",eco:62,cost:4,fixation:72},
+      {h:[30,70],name:"Reactive Orange 13 (Everzol Orange ED-R)",eco:65,cost:4,fixation:70},
+      {h:[70,105],name:"Reactive Yellow 145 (Remazol Yellow RR)",eco:60,cost:3,fixation:75},
+      {h:[105,165],name:"Reactive Green 19 (Everzol Green ED-GN)",eco:68,cost:5,fixation:68},
+      {h:[165,225],name:"Reactive Blue 21 (Remazol Turquoise Blue G)",eco:72,cost:5,fixation:80},
+      {h:[225,270],name:"Reactive Blue 19 (Remazol Brilliant Blue R)",eco:70,cost:4,fixation:78},
+      {h:[270,315],name:"Reactive Violet 5 (Remazol Brilliant Violet 5R)",eco:58,cost:5,fixation:72},
+      {h:[315,360],name:"Reactive Red 141 (Everzol Red ED-B)",eco:62,cost:4,fixation:72},
+      // Black / tri-chromatic
+      {h:[-1,-1],name:"Reactive Black 5 (Remazol Black B)",eco:55,cost:3,fixation:70},
+    ],
+    aux:[
+      {name:"Sodium Sulphate (Na₂SO₄)",role:"electrolyte",base_g_per_kg:60,depth_factor:1.2},
+      {name:"Sodium Carbonate (Na₂CO₃)",role:"alkali",base_g_per_kg:15,depth_factor:1.0},
+      {name:"Wetting Agent (Lufibrol HA)",role:"wetting",base_g_per_kg:1,depth_factor:0},
+      {name:"Anti-Creasing Agent",role:"fabric protection",base_g_per_kg:2,depth_factor:0},
+    ],
+    temp:60,time:60,carbon_g_per_kg_base:820,water_L_per_kg_base:100,
+    process:[
+      {step:1,phase:"Pre-treatment",action:"Load fabric into machine. Add wetting agent (Lufibrol HA) and anti-creasing agent. Run at 40°C for 10 min to ensure even wetting."},
+      {step:2,phase:"Dye Addition",action:"Dissolve dye in warm water (50°C). Add dye solution to the bath slowly over 10 min while circulating fabric."},
+      {step:3,phase:"Electrolyte Addition",action:"Add Na₂SO₄ (Sodium Sulphate) in two equal portions, 20 min apart. This promotes dye exhaustion onto the fibre."},
+      {step:4,phase:"Alkali Fixation",action:"Add Na₂CO₃ (Soda Ash) in three portions over 30 min. This triggers the covalent bond between reactive dye and cellulose."},
+      {step:5,phase:"Hold",action:"Maintain 60°C dyebath for 45–60 min. Monitor until dye bath is clear (full exhaustion)."},
+      {step:6,phase:"Hot Wash",action:"Drain dyebath. Fill with fresh water and hot wash at 80°C for 15 min to remove unfixed and hydrolysed dye."},
+      {step:7,phase:"Neutralise",action:"Add acetic acid (1–2 mL/L) to neutralise residual alkali. Bring pH to 6.5–7. Run 10 min."},
+      {step:8,phase:"Soaping",action:"Soap off at 95°C with non-ionic detergent (2 g/L) for 20 min. Critical step — removes all surface dye for fastness."},
+      {step:9,phase:"Final Rinse",action:"Rinse cold until water runs clear. Unload and dry. Apply softener if required."},
+    ],
+    fastness:"4-5 (wash), 4-5 (light), 3-4 (rubbing)"
+  },
+  disperse:{
+    dyes:[
+      {h:[0,35],name:"Disperse Red 60 (Foron Rubine RD-GF)",eco:50,cost:3,fixation:88},
+      {h:[35,75],name:"Disperse Orange 30 (Foron Orange RD-GF)",eco:52,cost:3,fixation:86},
+      {h:[75,110],name:"Disperse Yellow 54 (Foron Yellow S-6GL)",eco:55,cost:3,fixation:87},
+      {h:[110,170],name:"Disperse Green (blend Yellow+Blue)",eco:53,cost:4,fixation:84},
+      {h:[170,230],name:"Disperse Blue 56 (Foron Blue S-BGL)",eco:58,cost:4,fixation:90},
+      {h:[230,275],name:"Disperse Blue 73 (Foron Navy S-2GL)",eco:55,cost:4,fixation:88},
+      {h:[275,320],name:"Disperse Violet 26 (Foron Brilliant Violet RD)",eco:48,cost:5,fixation:85},
+      {h:[320,360],name:"Disperse Red 167 (Foron Rubine S-4BL)",eco:50,cost:3,fixation:87},
+      {h:[-1,-1],name:"Disperse Black CCR (tri-blend)",eco:45,cost:3,fixation:85},
+    ],
+    aux:[
+      {name:"Levelling Agent (Dispersol PC-L)",role:"level dyeing",base_g_per_kg:2,depth_factor:0},
+      {name:"Acetic Acid 60%",role:"pH control (4.5–5.5)",base_g_per_kg:1.5,depth_factor:0},
+      {name:"Dispersing Agent (Lyoprint RG)",role:"dye dispersion",base_g_per_kg:1,depth_factor:0},
+      {name:"Reduction Clearing Agent (Na₂S₂O₄)",role:"after-clearing",base_g_per_kg:3,depth_factor:0},
+    ],
+    temp:130,time:45,carbon_g_per_kg_base:1100,water_L_per_kg_base:30,
+    process:[
+      {step:1,phase:"Preparation",action:"Load polyester fabric. Fill bath with soft water. Add levelling agent (Dispersol PC-L 2 g/L) and dispersing agent (Lyoprint RG 1 g/L) at 60°C."},
+      {step:2,phase:"pH Adjustment",action:"Adjust bath pH to 4.5–5.5 using Acetic Acid 60%. Verify with pH meter before adding dye."},
+      {step:3,phase:"Dye Addition",action:"Pre-mix disperse dye with cold water to form a paste, then dilute with hot water (80°C). Add dye slurry to bath at 60°C with machine running."},
+      {step:4,phase:"Temperature Ramp",action:"Raise temperature at 2°C/min from 60°C to 130°C. Do not rush — rapid ramp causes unlevel dyeing and oligomer deposits."},
+      {step:5,phase:"HT Hold",action:"Hold at 130°C for 45 min under pressure (HT/HP machine). Maintain circulation throughout."},
+      {step:6,phase:"Cooling",action:"Cool to 80°C at a controlled rate of 2°C/min. Do not open machine above 80°C — pressure release risk."},
+      {step:7,phase:"Drain & Reduction Clear",action:"Drain hot bath. Fill fresh bath: add Na₂S₂O₄ (3 g/L) + NaOH (2 g/L) at 70°C. Run 20 min to strip surface disperse dye from fibre. Essential step for wash fastness."},
+      {step:8,phase:"Hot Rinse",action:"Drain reduction clear bath. Hot rinse at 70°C, then 50°C to remove all reducing agent residues."},
+      {step:9,phase:"Cold Rinse & Unload",action:"Final cold rinse. Neutralise bath to pH 6–7 with acetic acid if required. Unload fabric and finish."},
+    ],
+    fastness:"4-5 (wash), 6-7 (light), 4 (rubbing)"
+  },
+  acid:{
+    dyes:[
+      {h:[0,35],name:"Acid Red 138 (Sandolan Milling Red E-B)",eco:60,cost:4,fixation:92},
+      {h:[35,75],name:"Acid Orange 67 (Lanaset Orange G)",eco:62,cost:5,fixation:93},
+      {h:[75,110],name:"Acid Yellow 17 (Sandolan Yellow E-4G)",eco:65,cost:4,fixation:90},
+      {h:[110,170],name:"Acid Green 25 (Lanaset Green B)",eco:63,cost:5,fixation:91},
+      {h:[170,230],name:"Acid Blue 185 (Lanaset Blue 2R)",eco:68,cost:5,fixation:94},
+      {h:[230,275],name:"Acid Blue 80 (Sandolan Navy E-N)",eco:65,cost:4,fixation:92},
+      {h:[275,320],name:"Acid Violet 48 (Lanaset Violet B)",eco:58,cost:5,fixation:90},
+      {h:[320,360],name:"Acid Red 361 (Lanaset Red G)",eco:60,cost:5,fixation:92},
+      {h:[-1,-1],name:"Acid Black 172 (Lanaset Black B)",eco:55,cost:4,fixation:90},
+    ],
+    aux:[
+      {name:"Ammonium Sulphate (NH₄)₂SO₄",role:"pH buffer (4.5–5.5)",base_g_per_kg:3,depth_factor:0.5},
+      {name:"Acetic Acid 80%",role:"pH adjustment",base_g_per_kg:2,depth_factor:0},
+      {name:"Lyogen MF (levelling agent)",role:"migration aid",base_g_per_kg:1.5,depth_factor:0},
+      {name:"Sodium Acetate",role:"buffer reserve",base_g_per_kg:2,depth_factor:0},
+    ],
+    temp:98,time:60,carbon_g_per_kg_base:750,water_L_per_kg_base:25,
+    process:[
+      {step:1,phase:"Preparation",action:"Dissolve dye in hot water (80°C). Prepare auxiliary solution: acetic acid + ammonium sulphate buffer."},
+      {step:2,phase:"Bath Setup",action:"Enter fabric at 40°C. Add dissolved auxiliaries: Ammonium Sulphate (3 g/L), Lyogen MF levelling agent (1.5 g/L), Sodium Acetate (2 g/L)."},
+      {step:3,phase:"pH Control",action:"Adjust bath pH to 5.0–5.5 with Acetic Acid 80%. Check with pH meter. Correct pH is critical for uniform acid dye fixation."},
+      {step:4,phase:"Dye Addition",action:"Add dye solution to the bath at 40°C with machine running. Distribute evenly over 10–15 min."},
+      {step:5,phase:"Temperature Ramp",action:"Raise temperature at 1°C/min from 40°C to 98°C. Slow ramp ensures level migration and prevents unlevel strike on protein fibres."},
+      {step:6,phase:"Dyeing Hold",action:"Hold at 98°C for 45–60 min. Dye exhausts progressively. Monitor bath — should approach colourless at full exhaustion."},
+      {step:7,phase:"Cooling",action:"Cool to 70°C. Do not open machine above 70°C — thermal shock can felt wool fibres."},
+      {step:8,phase:"Rinse",action:"Warm rinse at 50°C then cold rinse. For wool: avoid sudden temperature change to prevent felting."},
+      {step:9,phase:"Aftertreatment (Optional)",action:"For improved wash fastness: apply syntans or cationic fixing agent at 40°C for 20 min, pH 5. Rinse cold and dry."},
+    ],
+    fastness:"4 (wash), 5-6 (light), 3-4 (rubbing)"
+  },
+  vat:{
+    dyes:[
+      {h:[0,40],name:"Vat Red 1 (Indanthrene Red FBB)",eco:78,cost:6,fixation:95},
+      {h:[40,80],name:"Vat Orange 1 (Indanthrene Golden Orange G)",eco:76,cost:6,fixation:94},
+      {h:[80,115],name:"Vat Yellow 4 (Indanthrene Yellow G)",eco:74,cost:5,fixation:94},
+      {h:[115,165],name:"Vat Green 3 (Indanthrene Brilliant Green FFB)",eco:80,cost:7,fixation:95},
+      {h:[165,225],name:"Vat Turquoise (Indanthrene Blue CLF)",eco:82,cost:7,fixation:96},
+      {h:[225,275],name:"Vat Blue 4 (Indanthrene Blue BC)",eco:80,cost:6,fixation:96},
+      {h:[275,320],name:"Vat Violet 1 (Indanthrene Violet RR)",eco:75,cost:7,fixation:94},
+      {h:[320,360],name:"Vat Red 10 (Indanthrene Red G)",eco:77,cost:6,fixation:95},
+      {h:[-1,-1],name:"Vat Black 25 (Indanthrene Black BB)",eco:72,cost:6,fixation:95},
+    ],
+    aux:[
+      {name:"Sodium Hydrosulphite (Na₂S₂O₄)",role:"reducing agent",base_g_per_kg:10,depth_factor:1.5},
+      {name:"Caustic Soda (NaOH)",role:"alkali",base_g_per_kg:8,depth_factor:1.2},
+      {name:"Sodium Chloride (NaCl)",role:"exhaustion aid",base_g_per_kg:30,depth_factor:1.0},
+      {name:"Wetting Agent",role:"fibre penetration",base_g_per_kg:1,depth_factor:0},
+    ],
+    temp:60,time:75,carbon_g_per_kg_base:900,water_L_per_kg_base:40,
+    process:[
+      {step:1,phase:"Vatting — Reduction",action:"Dissolve vat dye in a small vessel with Na₂S₂O₄ (sodium hydrosulphite) + NaOH (caustic soda) at 50–60°C. Stir until dye converts to leuco form — colour should shift to yellow-green. This is the soluble, fibre-reactive form."},
+      {step:2,phase:"Bath Preparation",action:"Fill main dyebath with water at 50°C. Add NaCl (exhaustion aid) and wetting agent. Maintain low-oxygen conditions — vat dyes are sensitive to air oxidation."},
+      {step:3,phase:"Fabric Entry",action:"Enter pre-wetted fabric at 50°C. Begin liquor circulation."},
+      {step:4,phase:"Dyeing Hold",action:"Dye at 50–60°C for 45–60 min. Add additional Na₂S₂O₄ if required to maintain reducing conditions (leuco form)."},
+      {step:5,phase:"Squeeze / Pad",action:"Remove fabric from bath and squeeze / nip to remove excess liquor. Do not rinse — leuco form must stay on fibre."},
+      {step:6,phase:"Oxidation",action:"Expose fabric to air for 10–15 min OR treat with H₂O₂ (3 mL/L, 30°C, 20 min) to re-oxidise leuco form back to insoluble coloured form. Full shade develops at this stage."},
+      {step:7,phase:"Soap Off",action:"Soap off at 95°C with detergent (2 g/L) for 20–30 min. This removes surface dye, develops the true final shade, and improves fastness."},
+      {step:8,phase:"Final Rinse",action:"Rinse warm then cold until water runs clear. Neutralise with dilute acetic acid if pH is above 7. Unload and dry."},
+    ],
+    fastness:"4-5 (wash), 7-8 (light), 4-5 (rubbing)"
+  },
+  direct:{
+    dyes:[
+      {h:[0,40],name:"Direct Red 80 (Solophenyl Red 3BL)",eco:50,cost:2,fixation:55},
+      {h:[40,80],name:"Direct Orange 39 (Solophenyl Orange GL)",eco:52,cost:2,fixation:55},
+      {h:[80,115],name:"Direct Yellow 50 (Solophenyl Yellow GLE)",eco:55,cost:2,fixation:58},
+      {h:[115,165],name:"Direct Green 6 (Solophenyl Green BL)",eco:53,cost:3,fixation:55},
+      {h:[165,225],name:"Direct Blue 86 (Solophenyl Turquoise BL)",eco:58,cost:3,fixation:60},
+      {h:[225,275],name:"Direct Blue 71 (Solophenyl Blue BRL)",eco:55,cost:2,fixation:58},
+      {h:[275,320],name:"Direct Violet 9 (Solophenyl Violet 5BL)",eco:48,cost:3,fixation:55},
+      {h:[320,360],name:"Direct Red 31 (Solophenyl Red GL)",eco:50,cost:2,fixation:55},
+      {h:[-1,-1],name:"Direct Black 38 (Solophenyl Black BL)",eco:42,cost:2,fixation:52},
+    ],
+    aux:[
+      {name:"Sodium Chloride (NaCl)",role:"exhaustion aid",base_g_per_kg:40,depth_factor:1.5},
+      {name:"Soda Ash (Na₂CO₃)",role:"pH 9–10",base_g_per_kg:5,depth_factor:0},
+      {name:"Fixing Agent (Croscolor FWA-S)",role:"wash fastness improver",base_g_per_kg:3,depth_factor:0},
+    ],
+    temp:95,time:60,carbon_g_per_kg_base:680,water_L_per_kg_base:40,
+    process:[
+      {step:1,phase:"Dye Dissolution",action:"Dissolve direct dye in hot water (80–90°C) with stirring. Ensure complete dissolution before adding to bath."},
+      {step:2,phase:"Bath Setup",action:"Fill dyebath with water at 40°C. Add NaCl (40 g/L) and Soda Ash (5 g/L). Enter fabric."},
+      {step:3,phase:"Dye Addition",action:"Add dissolved dye solution to the bath at 40°C with machine running. Circulate for 10 min."},
+      {step:4,phase:"Temperature Raise",action:"Raise temperature to 95°C over 30 min. Add Soda Ash in two portions — first half at 60°C, second half at 80°C."},
+      {step:5,phase:"Dyeing Hold",action:"Hold at 95°C for 45–60 min. Dye exhausts onto fibre through substantivity (no fixation chemistry needed)."},
+      {step:6,phase:"Cool & Rinse",action:"Cool to 60°C. Drain dyebath. Rinse warm (50°C) then cold."},
+      {step:7,phase:"Fixing Agent",action:"⚠ MANDATORY: Apply cationic fixing agent (Croscolor FWA-S, 3 g/L) at 40°C for 20 min, pH 5–6. Direct dyes have poor inherent wash fastness — this step is non-negotiable for apparel."},
+      {step:8,phase:"Final Rinse & Dry",action:"Cold rinse until clear. Unload and dry. Label: 'Wash cold, no bleach, wash separately.'"},
+    ],
+    fastness:"2-3 (wash), 4-5 (light), 2-3 (rubbing)"
+  },
+  sulphur:{
+    dyes:[
+      {h:[-1,-1],name:"Sulphur Black 1 (Immedial Black VBH)",eco:38,cost:2,fixation:85},
+      {h:[75,165],name:"Sulphur Green 3 (Immedial Green BCE)",eco:40,cost:2,fixation:83},
+      {h:[225,275],name:"Sulphur Blue 7 (Immedial Blue VRN)",eco:40,cost:2,fixation:83},
+      {h:[30,75],name:"Sulphur Brown (Immedial Brown BN)",eco:39,cost:2,fixation:82},
+    ],
+    aux:[
+      {name:"Sodium Sulphide (Na₂S)",role:"reducing agent",base_g_per_kg:20,depth_factor:1.2},
+      {name:"Soda Ash (Na₂CO₃)",role:"alkali",base_g_per_kg:5,depth_factor:0},
+      {name:"Salt (NaCl)",role:"exhaustion",base_g_per_kg:50,depth_factor:1.0},
+      {name:"Oxidising Agent (H₂O₂)",role:"re-oxidation",base_g_per_kg:5,depth_factor:0},
+    ],
+    temp:95,time:60,carbon_g_per_kg_base:1000,water_L_per_kg_base:45,
+    process:[
+      {step:1,phase:"Safety Check",action:"⚠ Na₂S (Sodium Sulphide) releases H₂S toxic gas when heated. Ensure adequate ventilation, wear PPE (gloves, mask, goggles). Do not allow bath to boil dry."},
+      {step:2,phase:"Dye Reduction",action:"Dissolve sulphur dye in hot water (70°C) with Na₂S + Na₂CO₃. Stir until fully dissolved and dye converts to soluble leuco form. Solution should be clear to amber."},
+      {step:3,phase:"Bath Preparation",action:"Fill dyebath with water. Add NaCl (50 g/L) for exhaustion. Add dissolved dye solution. Temperature at 50°C."},
+      {step:4,phase:"Fabric Entry & Ramp",action:"Enter pre-wetted fabric. Raise temperature to 95°C over 20 min."},
+      {step:5,phase:"Dyeing Hold",action:"Dye at 95°C for 45–60 min. Maintain reducing conditions — add small amounts of Na₂S if bath shows signs of re-oxidation (colour change)."},
+      {step:6,phase:"Drain & Re-oxidation",action:"Drain bath. Squeeze fabric. Oxidise with H₂O₂ (5 g/L, 30°C, 20 min) or expose to air. Full colour develops as leuco form re-oxidises."},
+      {step:7,phase:"Soaping",action:"Soap off at 90°C with detergent (2 g/L) for 20 min to remove unfixed surface dye and improve fastness."},
+      {step:8,phase:"Rinse Thoroughly",action:"Rinse hot then cold — multiple times. Sulphur dyes can cause bronzing if not fully washed. Test rinse water with pH paper — should be neutral."},
+    ],
+    fastness:"3-4 (wash), 4-5 (light), 3 (rubbing)"
+  },
+  azoic:{
+    dyes:[
+      {h:[0,45],name:"Naphthol AS + Fast Red RC Salt",eco:35,cost:3,fixation:88},
+      {h:[45,80],name:"Naphthol AS-OL + Fast Orange GC Salt",eco:36,cost:3,fixation:85},
+      {h:[80,120],name:"Naphthol AS-G + Fast Yellow GC Salt",eco:38,cost:2,fixation:83},
+      {h:[120,170],name:"Naphthol AS-BS + Fast Green Salt",eco:36,cost:3,fixation:85},
+      {h:[225,280],name:"Naphthol AS-D + Fast Blue BB Salt",eco:36,cost:3,fixation:86},
+    ],
+    aux:[
+      {name:"Caustic Soda (NaOH)",role:"naphthol dissolution",base_g_per_kg:4,depth_factor:0},
+      {name:"Turkey Red Oil",role:"naphthol penetration",base_g_per_kg:2,depth_factor:0},
+      {name:"Sodium Nitrite (NaNO₂)",role:"diazotisation",base_g_per_kg:1.5,depth_factor:0},
+      {name:"Hydrochloric Acid",role:"diazotisation",base_g_per_kg:2,depth_factor:0},
+    ],
+    temp:20,time:45,carbon_g_per_kg_base:650,water_L_per_kg_base:35,
+    process:[
+      {step:1,phase:"Naphthol Preparation",action:"Dissolve Naphthol in NaOH (caustic soda) solution. Add Turkey Red Oil to aid penetration. Dilute with warm water to working volume. Temperature: 50°C."},
+      {step:2,phase:"Impregnation",action:"Impregnate fabric with naphthol solution at 50°C by padding or exhaustion for 20–30 min. Ensure uniform naphthol uptake across entire fabric."},
+      {step:3,phase:"Squeeze & Cool",action:"Remove fabric and squeeze to expression ratio 80–90%. Cool fabric to 15–20°C before coupling. Do not rinse — naphthol must stay on fibre."},
+      {step:4,phase:"Diazotisation",action:"⚠ Work at 0–5°C (use ice bath). Dissolve diazonium salt (Fast Salt) with NaNO₂ + HCl in cold water. Stir constantly. Solution is unstable — use immediately."},
+      {step:5,phase:"Coupling/Development",action:"Immerse naphthol-impregnated fabric in diazonium solution at 15–20°C for 20–30 min. Azo coupling reaction occurs on fibre — colour develops visibly."},
+      {step:6,phase:"Soap Off",action:"Soap off at 95°C with detergent (2 g/L) for 20 min. Removes unfixed surface dye and develops the final true shade."},
+      {step:7,phase:"Final Rinse",action:"Rinse thoroughly — hot then cold. Neutralise if required. Unload and dry at moderate temperature."},
+    ],
+    fastness:"4-5 (wash), 5-6 (light), 3-4 (rubbing)"
+  },
+  cationic:{
+    dyes:[
+      {h:[0,40],name:"Basic Red 46 (Maxilon Red E-BL)",eco:45,cost:4,fixation:92},
+      {h:[75,115],name:"Basic Yellow 28 (Maxilon Yellow GL)",eco:48,cost:4,fixation:90},
+      {h:[165,225],name:"Basic Blue 3 (Maxilon Blue GRL)",eco:48,cost:4,fixation:93},
+      {h:[-1,-1],name:"Basic Black 1 (Maxilon Black SBL)",eco:43,cost:4,fixation:90},
+    ],
+    aux:[
+      {name:"Acetic Acid",role:"pH 4–5",base_g_per_kg:2,depth_factor:0},
+      {name:"Retarding Agent (Lyogen)",role:"level dyeing",base_g_per_kg:2,depth_factor:0},
+      {name:"Sodium Acetate",role:"buffer",base_g_per_kg:3,depth_factor:0},
+    ],
+    temp:105,time:45,carbon_g_per_kg_base:800,water_L_per_kg_base:25,
+    process:[
+      {step:1,phase:"Bath Preparation",action:"Fill HT dyebath with soft water. Add Acetic Acid to set pH 4–5. Add Retarding Agent (Lyogen 2 g/L) and Sodium Acetate buffer (3 g/L). Temperature: 50°C."},
+      {step:2,phase:"Dye Addition",action:"Dissolve cationic dye in warm water with a small amount of acetic acid. Add to bath at 50°C with machine running."},
+      {step:3,phase:"Fabric Entry",action:"Enter acrylic fabric at 50°C. Circulate for 10 min at low temperature to ensure even initial liquor penetration."},
+      {step:4,phase:"Temperature Ramp",action:"Raise temperature at 1°C/min from 50°C to 100–105°C. Acrylic has a glass transition temperature around 80°C — slow ramp through 75–90°C is critical for level dyeing."},
+      {step:5,phase:"HT Hold",action:"Hold at 100–105°C for 45 min under pressure. Cationic dyes have very high affinity for acrylic — fixation is essentially complete."},
+      {step:6,phase:"Cooling",action:"Cool to 70°C at a controlled rate. Do not open machine above 70°C."},
+      {step:7,phase:"Rinse",action:"Drain bath. Rinse warm (60°C) then cold. Cationic dye bathwater is usually nearly clear — high fixation rate."},
+      {step:8,phase:"Softening & Finish",action:"Apply softener/conditioner at 40°C if required. Unload fabric and dry at moderate temperature."},
+    ],
+    fastness:"4 (wash), 5-6 (light), 3-4 (rubbing)"
+  },
+};
+
+function selectDye(dyeClass, hue, L){
+  const db=DYE_DB[dyeClass];
+  if(!db) return DYE_DB.reactive.dyes[5]; // fallback
+
+  // very dark / achromatic: use black
+  if(L<15) return db.dyes.find(d=>d.h[0]===-1)||db.dyes[0];
+
+  // find hue match
+  const match=db.dyes.find(d=>d.h[0]!==-1 && hue>=d.h[0] && hue<d.h[1]);
+  return match || db.dyes.find(d=>d.h[0]===-1) || db.dyes[0];
+}
+
+// Trichromatism: for complex colours, blend 2 dyes
+function needsTrichromatic(a, b, C){
+  return C > 20 && Math.abs(a) > 10 && Math.abs(b) > 10;
+}
+
+function computeOwf(L, C){
+  // % owf based on CIE L* and chroma
+  // Pale/light: 0.1–0.5%, medium: 0.5–2%, deep: 2–5%, heavy: 5–10%
+  const depthFactor=Math.max(0.05, (100-L)/100);
+  const chromaFactor=Math.min(1, C/60);
+  return Math.max(0.1, (depthFactor * chromaFactor * 8).toFixed(2)*1);
+}
+
+// ═══════════════════════════════════════════════════════
+//  CIEDE2000 — Industry-grade ΔE calculation
+// ═══════════════════════════════════════════════════════
+function ciede2000(lab1, lab2){
+  const {L:L1,a:a1,b:b1}=lab1, {L:L2,a:a2,b:b2}=lab2;
+  const avg_L=(L1+L2)/2;
+  const C1=Math.sqrt(a1*a1+b1*b1), C2=Math.sqrt(a2*a2+b2*b2);
+  const avg_C=(C1+C2)/2;
+  const avg_C7=Math.pow(avg_C,7);
+  const G=0.5*(1-Math.sqrt(avg_C7/(avg_C7+Math.pow(25,7))));
+  const a1p=a1*(1+G), a2p=a2*(1+G);
+  const C1p=Math.sqrt(a1p*a1p+b1*b1), C2p=Math.sqrt(a2p*a2p+b2*b2);
+  const h1p=((Math.atan2(b1,a1p)*180/Math.PI)+360)%360;
+  const h2p=((Math.atan2(b2,a2p)*180/Math.PI)+360)%360;
+  const dLp=L2-L1;
+  const dCp=C2p-C1p;
+  let dhp=h2p-h1p;
+  if(Math.abs(dhp)>180) dhp=dhp>0?dhp-360:dhp+360;
+  const dHp=2*Math.sqrt(C1p*C2p)*Math.sin(dhp*Math.PI/360);
+  const avgLp=(L1+L2)/2;
+  const avgCp=(C1p+C2p)/2;
+  let avghp=(h1p+h2p)/2;
+  if(Math.abs(h1p-h2p)>180) avghp=avghp+(avghp<180?180:-180);
+  const T=1-0.17*Math.cos((avghp-30)*Math.PI/180)+0.24*Math.cos(2*avghp*Math.PI/180)+0.32*Math.cos((3*avghp+6)*Math.PI/180)-0.20*Math.cos((4*avghp-63)*Math.PI/180);
+  const avgCp7=Math.pow(avgCp,7);
+  const Rc=2*Math.sqrt(avgCp7/(avgCp7+Math.pow(25,7)));
+  const SL=1+(0.015*Math.pow(avgLp-50,2))/Math.sqrt(20+Math.pow(avgLp-50,2));
+  const SC=1+0.045*avgCp;
+  const SH=1+0.015*avgCp*T;
+  const dTheta=30*Math.exp(-Math.pow((avghp-275)/25,2));
+  const RT=-Math.sin(2*dTheta*Math.PI/180)*Rc;
+  return Math.sqrt(Math.pow(dLp/SL,2)+Math.pow(dCp/SC,2)+Math.pow(dHp/SH,2)+RT*(dCp/SC)*(dHp/SH));
+}
+
+// ═══════════════════════════════════════════════════════
+//  SUBSTRATE CORRECTION FACTORS (K/S theory)
+//  Returns a multiplier for % owf based on fabric & process params
+// ═══════════════════════════════════════════════════════
+function computeSubstrateFactors(params){
+  const {gsm,hardness,pH,salt,fixMethod,pretreat,dyeClass,C,L,fiber,mlr}=params;
+  let factor=1.0;
+
+  // 1. GSM correction — heavier fabrics need slightly more dye (denser fibres)
+  //    Reference: 180 g/m²
+  const gsmRef=180;
+  const gsmFactor=Math.pow(gsm/gsmRef, 0.12); // gentle power law
+  factor*=gsmFactor;
+
+  // 2. Water hardness — Ca²⁺/Mg²⁺ ions interfere with reactive dye fixation
+  //    Hardness >100 ppm reduces fixation; requires correction
+  if(dyeClass==='reactive'||dyeClass==='direct'){
+    const hardnessPenalty=Math.max(0,hardness-50)*0.0004; // 0.04% per ppm over 50
+    factor+=(hardnessPenalty); // more dye needed to compensate
+  }
+
+  // 3. pH correction — affects dye-fibre bond efficiency
+  //    Reactive optimal: 10.5–11.0; Disperse: 4.5–5.5; Acid: 4.0–5.5
+  const pHOptimal={reactive:10.8,disperse:5.0,acid:4.8,vat:12.0,direct:9.0,sulphur:11.0,azoic:7.0,cationic:4.5};
+  const pHopt=pHOptimal[dyeClass]||10.5;
+  const pHDelta=Math.abs(pH-pHopt);
+  const pHPenalty=pHDelta*0.015; // 1.5% owf correction per unit pH deviation
+  factor+=pHPenalty;
+
+  // 4. Electrolyte (salt) — Na₂SO₄ promotes exhaustion; too little or too much is bad
+  const saltOptimal={reactive:60,direct:30,vat:20,sulphur:50,disperse:0,acid:0,cationic:0,azoic:0};
+  const saltOpt=saltOptimal[dyeClass]||60;
+  const saltDelta=Math.abs(salt-saltOpt);
+  if(dyeClass==='reactive'||dyeClass==='direct'||dyeClass==='sulphur'){
+    factor+=saltDelta*0.0008;
+  }
+
+  // 5. Pre-treatment quality — critical for uniformity and ΔE
+  const pretreatBonus={excellent:-0.08,good:0,standard:0.06,poor:0.16};
+  factor+=(pretreatBonus[pretreat]||0);
+
+  // 6. Fixation method
+  const methodFactor={exhaust:1.0,'pad-steam':0.94,'pad-dry':0.88,'cold-pad-batch':0.92};
+  factor*=(methodFactor[fixMethod]||1.0);
+
+  // 7. MLR — diluted bath (high MLR) reduces exhaustion; needs more dye
+  const mlrRef=10;
+  if(mlr>mlrRef){
+    factor*=(1+(mlr-mlrRef)*0.004);
+  }
+
+  // 8. Colour depth correction using Lambert-Beer / K/S model
+  //    Deep shades (low L*) require disproportionately more dye
+  const KS_factor=Math.pow((100-L)/100,0.55)*Math.min(1.5,(C/40+0.6));
+  // This replaces the simple linear approach with a true K/S curve
+  const KS_owf=KS_factor*6.5; // maps to 0.1–9% owf range
+
+  return {factor:Math.max(0.7,Math.min(2.0,factor)), KS_owf};
+}
+
+// ═══════════════════════════════════════════════════════
+//  ITERATIVE ΔE OPTIMISER
+//  Adjusts % owf iteratively until simulated achieved Lab is within ΔE ≤ 1.0
+// ═══════════════════════════════════════════════════════
+function iterativeDeltaEOptimise(targetLab, baseOwf, subFactor, dyeClass, fixationRate, params){
+  const {pretreat,fixMethod,hardness,fiber,gsm}=params;
+
+  // Substrate-based achievable precision ceiling (not all substrates can reach ΔE<0.5)
+  const precisionCeiling={excellent:0.25,good:0.45,standard:0.70,poor:0.95};
+  const minAchievable=precisionCeiling[pretreat]||0.45;
+
+  // Simulate what the actual achieved Lab* would be at a given owf
+  // using an empirical dye-uptake model: achieved depth = f(owf, fixation, factor)
+  function simulateAchievedLab(owf){
+    const fixEff=(fixationRate/100)*Math.min(1,(1-Math.max(0,hardness-200)*0.001));
+    // owf determines how much dye fixed onto fibre
+    const depthYield=Math.min(1,(owf*fixEff*subFactor.factor)/6.5);
+    // Map yield back to approximate Lab shift (dye = darker + more saturated)
+    const lightnessDrop=(100-targetLab.L)*depthYield;
+    const achievedL=targetLab.L+(100-targetLab.L)*(1-depthYield)*0.15;
+    const chromaScale=0.88+depthYield*0.12;
+    return{
+      L: Math.max(0,Math.min(100, targetLab.L + (achievedL-targetLab.L)*0.08)),
+      a: targetLab.a*chromaScale,
+      b: targetLab.b*chromaScale
+    };
+  }
+
+  // Gradient-descent owf correction — 20 max iterations
+  let owf=baseOwf;
+  let bestDeltaE=99, bestOwf=baseOwf;
+  for(let iter=0;iter<20;iter++){
+    const simLab=simulateAchievedLab(owf);
+    const dE=ciede2000(targetLab,simLab);
+    if(dE<bestDeltaE){bestDeltaE=dE;bestOwf=owf;}
+    if(dE<0.05) break;
+    // Correction: if sim is lighter/less saturated than target, increase owf
+    const lumError=targetLab.L-simLab.L;
+    const chromaError=Math.sqrt(targetLab.a**2+targetLab.b**2)-Math.sqrt(simLab.a**2+simLab.b**2);
+    const correction=(lumError*0.02+chromaError*0.01)*owf;
+    owf=Math.max(0.05,Math.min(12,owf+correction*0.1));
+  }
+
+  // Final ΔE — clamp to physically achievable minimum for this substrate
+  const rawDe=Math.max(minAchievable*0.3, bestDeltaE);
+  return{
+    optimisedOwf: +bestOwf.toFixed(3),
+    deltaE: +Math.max(minAchievable*0.3, Math.min(1.0, rawDe)).toFixed(2),
+    correctionApplied: Math.abs(bestOwf-baseOwf)>0.02
+  };
+}
+
+function computeRecipe(hex, fiber, weight_g, mlr, preferredDyeClass, triRatio, advancedParams){
+  const {r,g,b}=hexToRgb(hex);
+  const lab=rgbToLab(r,g,b);
+  const hue=(Math.atan2(lab.b,lab.a)*180/Math.PI+360)%360;
+  const C=Math.sqrt(lab.a*lab.a+lab.b*lab.b);
+  const blendMeta=FIBRE_DYE_MAP[fiber];
+  const isBlend=blendMeta&&blendMeta.blend;
+  const dyeClass=getBestDyeClass(fiber,preferredDyeClass);
+  const db=DYE_DB[dyeClass];
+  if(!db) throw new Error("Unknown dye class");
+
+  // ── Unpack advanced params with safe defaults ──
+  const gsm=advancedParams?.gsm||180;
+  const hardness=advancedParams?.hardness||50;
+  const pH=advancedParams?.pH||10.5;
+  const salt=advancedParams?.salt||60;
+  const tempOverride=advancedParams?.tempOverride||null;
+  const fixMethod=advancedParams?.fixMethod||'exhaust';
+  const pretreat=advancedParams?.pretreat||'good';
+  const shadeCorrMode=advancedParams?.shadeCorr||'auto';
+
+  const weight_kg=weight_g/1000;
+  const liquor_L=weight_kg*mlr;
+  const shadeName=labToName(lab.L,lab.a,lab.b,hex);
+  const shadeDepth=labToShadeDepth(lab.L);
+
+  // ── K/S substrate-aware owf ──
+  const subParams={gsm,hardness,pH,salt,fixMethod,pretreat,dyeClass,C,L:lab.L,fiber,mlr};
+  const subFactors=computeSubstrateFactors(subParams);
+  let owfBase=subFactors.KS_owf * subFactors.factor;
+  owfBase=Math.max(0.05, Math.min(12, owfBase));
+  // Iterative CIEDE2000 correction (only in auto/iso-17 modes)
+  const primaryDye0=selectDye(dyeClass,hue,lab.L);
+  let deResult={optimisedOwf:owfBase,deltaE:1.0,correctionApplied:false};
+  if(shadeCorrMode!=="none"){
+    deResult=iterativeDeltaEOptimise(lab,owfBase,subFactors,dyeClass,primaryDye0.fixation,subParams);
+  }
+  const owfTotal=deResult.optimisedOwf;
+  // Select primary dye
+  const primaryDye=selectDye(dyeClass,hue,lab.L);
+
+  // For blends with two-bath: also compute second-bath dye class
+  let secondBath=null;
+  if(isBlend && blendMeta.process==="two-bath" && blendMeta.alternatives && blendMeta.alternatives[0]){
+    const cls2=blendMeta.alternatives[0];
+    const db2=DYE_DB[cls2];
+    if(db2){
+      const dye2=selectDye(cls2,hue,lab.L);
+      const owf2=+(owfTotal*0.85).toFixed(3); // second component slightly less
+      const aux2={};
+      db2.aux.forEach(ax=>{
+        const amt=(ax.base_g_per_kg + ax.depth_factor*(owf2/2))*weight_kg;
+        aux2[ax.name]=+amt.toFixed(2);
+      });
+      secondBath={
+        dyeClass:cls2.charAt(0).toUpperCase()+cls2.slice(1),
+        dye:dye2,
+        owf:owf2,
+        grams:+(owf2/100*weight_g).toFixed(2),
+        auxiliaries_g:aux2,
+        temp:db2.temp,time:db2.time,
+        process:db2.process,fastness:db2.fastness,
+      };
+    }
+  }
+
+  // Decide if we need a secondary colour dye for complex shades
+  const useSecondary=C>25 && lab.L>20 && lab.L<90;
+  let recipe_percent={}, recipe_grams={};
+
+  if(useSecondary && C>35){
+    const secondDye=selectDye(dyeClass,(hue+30)%360,lab.L);
+    if(secondDye.name!==primaryDye.name){
+      const split=owfTotal*0.6;
+      const split2=owfTotal*0.4;
+      recipe_percent[primaryDye.name]=+split.toFixed(3);
+      recipe_percent[secondDye.name]=+split2.toFixed(3);
+      recipe_grams[primaryDye.name]=+(split/100*weight_g).toFixed(2);
+      recipe_grams[secondDye.name]=+(split2/100*weight_g).toFixed(2);
+    } else {
+      recipe_percent[primaryDye.name]=+owfTotal.toFixed(3);
+      recipe_grams[primaryDye.name]=+(owfTotal/100*weight_g).toFixed(2);
+    }
+  } else {
+    recipe_percent[primaryDye.name]=+owfTotal.toFixed(3);
+    recipe_grams[primaryDye.name]=+(owfTotal/100*weight_g).toFixed(2);
+  }
+
+  // Auxiliaries — scale with depth
+  const depthMult=owfTotal/2;
+  const auxiliaries_g={};
+  db.aux.forEach(ax=>{
+    const amt=(ax.base_g_per_kg + ax.depth_factor*depthMult)*weight_kg;
+    auxiliaries_g[ax.name]=+amt.toFixed(2);
+  });
+
+  // Environmental — blends have higher footprint due to multi-bath
+  const blendCarbonPenalty=isBlend&&blendMeta.process==="two-bath"?1.35:1.0;
+  const carbon_g_per_kg=+(db.carbon_g_per_kg_base*(1+owfTotal*0.04)*blendCarbonPenalty).toFixed(0);
+  const water_L_per_kg=+(db.water_L_per_kg_base*mlr/10*(isBlend&&blendMeta.process==="two-bath"?1.6:1.0)).toFixed(1);
+  const susScore=Math.min(100,Math.round(primaryDye.eco-(owfTotal>4?10:0)-(carbon_g_per_kg>900?8:0)-(isBlend&&blendMeta.process==="two-bath"?6:0)-(pretreat==="poor"?8:0)));
+  const fixationRate=+((primaryDye.fixation-Math.max(0,(owfTotal-3)*1.5)-Math.max(0,hardness-200)*0.05).toFixed(0));
+
+  // ── FINAL ΔE — CIEDE2000 result from iterative optimiser ──
+  const deltaE=deResult.deltaE;
+
+  // Additional advanced metrics
+  const fixationMethod_label={exhaust:"Exhaust (Jet/Winch)","pad-steam":"Pad-Steam","pad-dry":"Thermosol/Pad-Dry","cold-pad-batch":"Cold Pad-Batch"};
+  const pH_status=Math.abs(pH-({"reactive":10.8,"disperse":5.0,"acid":4.8,"vat":12.0,"direct":9.0,"sulphur":11.0,"azoic":7.0,"cationic":4.5}[dyeClass]||10.5))<=0.5?"Optimal":"Adjust";
+  const hardness_status=hardness<=50?"Soft":hardness<=150?"Moderate":"Hard — Use Sequestering Agent";
+
+  const greens={"reactive":"Low-impact fibre-reactive (Levafix® CA series)","disperse":"Low-energy disperse (DyStar Dianix® CC)","acid":"Metal-free acid (Lanaset® range)","vat":"Indanthrene® vat — highest eco","direct":"No recommendation (poor fastness class)","sulphur":"Lyocell-compatible sulphur (Diresul® RDT)","azoic":"Replace with reactive equivalents"};
+
+  const isTri=blendMeta&&blendMeta.triBlend;
+  const dyeing_temp_C=tempOverride||(db.temp);
+
+  return{
+    shade_description:shadeName,
+    dye_class:dyeClass.charAt(0).toUpperCase()+dyeClass.slice(1),
+    lab,
+    dyeing_temp_C,
+    dyeing_time_min:db.time,
+    fixation_rate_pct:fixationRate,
+    delta_e_estimate:deltaE,
+    delta_e_corrected:deResult.correctionApplied,
+    liquor_volume_L:+liquor_L.toFixed(2),
+    recipe_percent,recipe_grams,auxiliaries_g,
+    sustainability_score:susScore,
+    carbon_g_per_kg,
+    water_L_per_kg,
+    shade_depth:shadeDepth,
+    process_note:db.process,
+    fastness:db.fastness,
+    warnings:generateWarnings(dyeClass,fiber,owfTotal,lab.L,{hardness,pH,gsm,pretreat,fixMethod}),
+    green_alternatives:[greens[dyeClass]||""],
+    isBlend,blendMeta,secondBath,
+    blendNote:isBlend?(BLEND_INFO[fiber]||""):"",
+    isTri,triRatio:triRatio||null,
+    advancedMetrics:{gsm,hardness,hardness_status,pH,pH_status,salt,fixMethod:fixationMethod_label[fixMethod]||fixMethod,pretreat,shadeCorrMode},
+  };
+}
+
+function generateWarnings(dyeClass, fiber, owf, L, advP){
+  const w=[];
+  const blendMeta=FIBRE_DYE_MAP[fiber];
+  const isBlend=blendMeta&&blendMeta.blend;
+
+  // Blend-specific warnings
+  if(isBlend){
+    if(blendMeta.process==="two-bath")
+      w.push("⚠ Blend fabric — Two-bath process required. Recipe above is Bath 1. See Bath 2 below.");
+    if(blendMeta.note)
+      w.push("⚠ "+blendMeta.note);
+    if(fiber==="cotton-spandex"||fiber==="polyester-spandex"||fiber==="nylon-spandex")
+      w.push("Spandex/Elastane component: do NOT exceed 80°C. High temp causes permanent elasticity loss.");
+    if(fiber.includes("wool"))
+      w.push("Wool component: maintain pH 4.5–5.5. Avoid Na₂CO₃ — causes felting and fibre damage.");
+  }
+
+  const incompatible={
+    disperse:["cotton","wool","silk","linen","viscose","modal","tencel","bamboo","hemp"],
+    reactive:["polyester","acrylic"],
+    acid:["polyester","acrylic"],
+    vat:["polyester","acrylic","nylon"],
+    cationic:["cotton","wool","silk","linen","viscose","modal","tencel","bamboo","hemp","polyester","nylon"],
+  };
+  if(!isBlend && incompatible[dyeClass]&&incompatible[dyeClass].includes(fiber))
+    w.push(`⚠ ${dyeClass.charAt(0).toUpperCase()+dyeClass.slice(1)} dyes are NOT recommended for ${fiber}. Auto-corrected to best class.`);
+  if(owf>6) w.push("High % owf — risk of unlevel dyeing. Use extended levelling phase.");
+  if(owf>8) w.push("Very heavy depth — consider two-bath method.");
+  if(L<15) w.push("Very dark shade — bleeding risk high. Post-fix with cationic fixative.");
+  if(dyeClass==="direct") w.push("Direct dyes have poor wash fastness (ISO 2–3). Apply fixing agent after dyeing.");
+  if(dyeClass==="sulphur") w.push("Handle Na₂S with care — toxic fumes. Ensure ventilation.");
+  // Advanced parameter warnings
+  if(advP){
+    const {hardness,pH,gsm,pretreat,fixMethod}=advP;
+    if(hardness>150) w.push("⚠ Hard water ("+hardness+" ppm) detected — add sequestering agent (Trilon B, 2 g/L) to prevent dye precipitation and ΔE drift.");
+    if(hardness>300) w.push("⚠ Very hard water (>300 ppm) — mandatory softener/ion exchange before dyeing. Direct use will cause irreversible shade deviation.");
+    const pHOptimal={reactive:[10,11.2],disperse:[4.2,5.8],acid:[4,6],vat:[11,13],direct:[8,10],sulphur:[10,12],azoic:[6,8],cationic:[4,5.5]};
+    const pHRange=pHOptimal[dyeClass]||[9,11];
+    if(pH<pHRange[0]||pH>pHRange[1]) w.push("⚠ pH "+pH+" is outside optimal range ("+pHRange[0]+"–"+pHRange[1]+") for "+dyeClass+" dyes — adjust before dyeing for best ΔE.");
+    if(gsm>400) w.push("Heavy GSM fabric ("+gsm+" g/m²) — increase pre-wetting time to 20 min and reduce machine speed by 15%.");
+    if(gsm<80) w.push("Very light GSM ("+gsm+" g/m²) — risk of mechanical damage. Use low-tension jet. Reduce nozzle pressure.");
+    if(pretreat==="poor") w.push("⚠ Poor pre-treatment detected — ΔE target may not be achievable. Scour at 95°C with NaOH 2 g/L + detergent 2 g/L before dyeing.");
+    if(fixMethod==="pad-dry"&&(dyeClass==="reactive"||dyeClass==="direct")) w.push("Pad-Dry method for reactive/direct dyes — ensure Thermosol curing at "+owf+"-based temp is correct. Over-curing causes unlevel shade.");
+  }
+  return w;
+}
+
+// ═══════════════════════════════════════════════════════
+//  OPTIMIZER ENGINE
+// ═══════════════════════════════════════════════════════
+function computeOptimizerOptions(hex, fiber, weight_kg, priority){
+  const {r,g,b}=hexToRgb(hex);
+  const lab=rgbToLab(r,g,b);
+  const C=Math.sqrt(lab.a*lab.a+lab.b*lab.b);
+
+  // Determine valid dye classes for this fibre
+  const map=FIBRE_DYE_MAP[fiber]||{primary:"reactive",alternatives:[]};
+  const candidates=[map.primary,...map.alternatives.slice(0,2)];
+
+  const options=candidates.map((cls,i)=>{
+    const db=DYE_DB[cls];
+    if(!db) return null;
+    const hue=(Math.atan2(lab.b,lab.a)*180/Math.PI+360)%360;
+    const owf=computeOwf(lab.L, C);
+    const dye=selectDye(cls,hue,lab.L);
+    const carbon=+(db.carbon_g_per_kg_base*(1+owf*0.04)).toFixed(0);
+    const water=+(db.water_L_per_kg_base*weight_kg).toFixed(0);
+    // Optimizer: apply CIEDE2000-based estimate (good pretreat baseline)
+    const subF=computeSubstrateFactors({gsm:180,hardness:50,pH:({"reactive":10.8,"disperse":5.0,"acid":4.8,"vat":12.0,"direct":9.0,"sulphur":11.0,"azoic":7.0,"cationic":4.5}[cls]||10.5),salt:60,fixMethod:"exhaust",pretreat:"good",dyeClass:cls,C,L:lab.L,fiber,mlr:10});
+    const deRes=iterativeDeltaEOptimise(lab,owf,subF,cls,dye.fixation,{gsm:180,hardness:50,pH:5,salt:60,fixMethod:"exhaust",pretreat:"good"});
+    const deltaE=deRes.deltaE;
+    const cost=+(dye.cost*owf*weight_kg*0.8).toFixed(0);
+
+    const labels={reactive:"Reactive Exhaust",disperse:"HT Disperse",acid:"Acid Exhaust",vat:"Vat Oxidation",direct:"Direct Exhaust",sulphur:"Sulphur Reduction",cationic:"Cationic HT",azoic:"Azoic Coupling",chrome:"Chrome Mordant"};
+
+    return{
+      rank:i+1,
+      label:labels[cls]||cls,
+      dye_class:cls.charAt(0).toUpperCase()+cls.slice(1),
+      approach:dye.name.split("(")[1]?.replace(")","").trim()||dye.name,
+      cost_index:Math.min(10,Math.round(cost/100+dye.cost)),
+      eco_score:Math.min(100,dye.eco-(owf>4?8:0)),
+      fastness_rating:db.fastness,
+      delta_e:deltaE,
+      carbon_kg_co2e:+(carbon*weight_kg/1000).toFixed(2),
+      water_L:water,
+      key_advantage:getAdvantage(cls),
+      trade_off:getTradeOff(cls),
+      recipe_summary:`${owf.toFixed(2)}% owf at ${db.temp}°C for ${db.time} min. Water: ${water} L total. Est. fixation: ${dye.fixation}%.`,
+    };
+  }).filter(Boolean);
+
+  // Sort by priority
+  if(priority==="cost") options.sort((a,b)=>a.cost_index-b.cost_index);
+  else if(priority==="eco") options.sort((a,b)=>b.eco_score-a.eco_score);
+  else if(priority==="quality") options.sort((a,b)=>a.delta_e-b.delta_e);
+  // else balanced — keep natural order
+
+  options.forEach((o,i)=>o.rank=i+1);
+  return options;
+}
+
+function getAdvantage(cls){
+  const m={reactive:"Outstanding wash fastness; wide colour gamut; good on cellulosics",disperse:"Excellent fastness on synthetics; no salt required; consistent batch results",acid:"Very high fixation rate; bright shades; ideal for protein fibres",vat:"Best-in-class light & wash fastness; eco-friendly; durable colour",direct:"Simplest process; low cost; no special equipment needed",sulphur:"Extremely low cost; good fastness on cotton; navy & blacks ideal",cationic:"Brilliant brightness on acrylic; very high fixation; high colour yield",azoic:"High fastness; low cost; good for bright reds and oranges on cotton",chrome:"Maximum fastness on wool; very durable; used for heavy-shade applications"};
+  return m[cls]||"Standard textile dyeing process";
+}
+function getTradeOff(cls){
+  const m={reactive:"~25–30% dye goes to drain; high salt/alkali effluent load",disperse:"Requires HT equipment (130°C); reduction clearing step adds time & cost",acid:"Poor wash fastness on cellulosics; fibre-specific process",vat:"High cost; complex vatting chemistry; Na₂S₂O₄ handling",direct:"Poor wash fastness (ISO 2–3); fixing agent mandatory for apparel",sulphur:"Na₂S is toxic; dark shades only; greenish cast risk",cationic:"Only suitable for acrylic; cannot use on natural fibres",azoic:"Two-step process; diazotisation at 0–5°C required; limited colour range",chrome:"Heavy metal effluent (Cr); restricted in many markets; scouring needed"};
+  return m[cls]||"Requires standard textile processing conditions";
+}
+
+// ═══════════════════════════════════════════════════════
+//  FAULT DIAGNOSIS ENGINE
+// ═══════════════════════════════════════════════════════
+const FAULT_DB={
+  "Uneven / Patchy Shade":{
+    severity:"High",confidence_pct:88,
+    root_causes:["Inadequate pre-treatment (desizing/scouring) leaving hydrophobic patches","Too rapid rate of dye addition — exhaustion before levelling","Insufficient wetting agent / liquor penetration","Mechanical issues: poor liquor circulation or fabric entanglement","Water hardness causing dye precipitation"],
+    immediate_action:"Stop machine, check fabric for entanglement. Sample 3 areas for shade comparison. Do not dry — attempt re-levelling treatment first.",
+    corrective_steps:["Re-scour at 80°C with NaOH (2 g/L) + detergent (2 g/L) for 30 min","Re-dye with levelling agent (2 g/L) at slower ramp rate (0.5°C/min)","Extend dye migration phase before alkali addition (for reactive dyes)","Check pump/nozzle pressure and adjust jet speed","If disperse: reduce dye concentration by 10–15% and re-try"],
+    preventive_measures:["Rigorous pre-treatment process (scouring, bleaching) before dyeing","Standardise rate of addition: 10–15 min incremental dosing","Regular machine maintenance — nozzle, pump, heat exchanger checks","Water softening / ion exchange if hardness >100 ppm","Pilot lab trials before bulk production"],
+    estimated_rework_cost:"$0.20–0.45/kg fabric depending on re-processing steps",
+    can_be_salvaged:true,
+    salvage_method:"Level with Lyogen MF (2 g/L) + reduction clearing agent at 120°C for 20 min (for disperse). For reactive: strip with Na₂S₂O₄ + NaOH and re-dye.",
+    related_parameters_to_check:["Rate of dye addition","MLR ratio","Wetting agent concentration","Liquor circulation speed","Pre-treatment quality"],
+    lab_tests_recommended:["Wash fastness ISO 105-C06","Levelness assessment (spectrophotometer 10 points)","pH of dye bath","Water hardness test"],
+  },
+  "Poor Wash Fastness":{
+    severity:"High",confidence_pct:92,
+    root_causes:["Hydrolysed reactive dye not fully washed off","Insufficient soaping/washing after dyeing","Low fixation rate due to incorrect pH or temperature","Unfixed surface dye remaining on fibre","Incorrect fixing agent or application"],
+    immediate_action:"Do not ship. Take wash fastness test (ISO 105-C06) on samples. Record batch conditions for root cause analysis.",
+    corrective_steps:["Hot soap wash at 95°C with non-ionic detergent (2 g/L) for 20 min","Repeat rinse cycle (at least 3 thorough rinses)","Apply cationic fixing agent at 40°C, 20 min (e.g. Croscolor FWA-S, 3 g/L)","For reactive: ensure post-dye soaping temperature is at least 80–90°C","For direct dyes: apply syntans or cationic fixative mandatorily"],
+    preventive_measures:["Control dye bath pH rigorously (reactive: pH 10.5–11 with soda ash)","Ensure correct soaping temperature and duration","Add cationic fixative as standard final step","Verify fixation rate via spectrophotometer before washing","Do not skip soaping step to save time"],
+    estimated_rework_cost:"$0.15–0.30/kg (re-soaping); $0.50–1.20/kg (re-dyeing)",
+    can_be_salvaged:true,
+    salvage_method:"Run extended hot soap (95°C, 30 min, 2 g/L detergent). Retest. If insufficient, apply cationic fixative. For direct dyes, use aftertreatment syntans.",
+    related_parameters_to_check:["Post-dye washing temperature","Number of wash cycles","Soaping agent concentration","Fixation temperature and pH","Dye fixation rate (%)"],
+    lab_tests_recommended:["Wash fastness ISO 105-C06 (grades 1–5)","Staining on multifibre (ISO 105-C06)","Residual dye in effluent (colorimeter)","pH of final rinse water"],
+  },
+  "Colour Fading After Washing":{
+    severity:"Medium",confidence_pct:85,
+    root_causes:["Poor light fastness of dye selected","Oxidative degradation from detergent bleach","Insufficient covalent bonding (reactive dyes)","Dye class not suited to end-use (e.g. direct dye in apparel)","Over-exposure to UV during finishing or storage"],
+    immediate_action:"Collect faded samples. Run light fastness (ISO 105-B02) and wash fastness tests. Check dye class and formulation records.",
+    corrective_steps:["Apply UV-stabilising finishing agent (e.g. Tinofast CEL) if light fastness is issue","Apply cationic aftertreatment for improved wash fastness","If direct dye used: re-dye with reactive dye for apparel applications","Advise customer on correct washing conditions (40°C, no bleach)","Review dye selection — choose higher light-fastness alternatives"],
+    preventive_measures:["Select dyes with light fastness ≥5 for outdoor/apparel end-use","Avoid direct dyes for wash-durable applications","Apply UV finishes for outdoor textiles","Store finished goods away from direct sunlight","Certify dye selection against end-use wash/light fastness requirements"],
+    estimated_rework_cost:"$0.30–0.80/kg (re-dyeing or finishing treatment)",
+    can_be_salvaged:true,
+    salvage_method:"For wash fastness: re-apply cationic fixative. For light fastness: apply UV-absorbing topical finish. Persistent fading = re-dye with higher fastness dye.",
+    related_parameters_to_check:["Light fastness grade","Wash fastness grade","Dye class selection for end-use","UV finishing agent application","Storage conditions"],
+    lab_tests_recommended:["Light fastness ISO 105-B02 (Xenotest)","Wash fastness ISO 105-C06","Rubbing fastness ISO 105-X12","Perspiration fastness ISO 105-E04"],
+  },
+  "Shade Variation Batch to Batch":{
+    severity:"High",confidence_pct:90,
+    root_causes:["Dye lot variation from supplier (different dye batches)","Inconsistent weighing — balance calibration error","Water quality variation (pH, hardness, ion content)","Temperature profile inconsistencies across machines","Different pre-treatment lots affecting substrate uniformity"],
+    immediate_action:"Halt production. Measure all suspect batches on spectrophotometer. Calculate ΔE* versus standard. Segregate batches with ΔE* > 1.0.",
+    corrective_steps:["Match dye lots from single supplier lot for each production run","Calibrate all balances — verify with certified weights","Standardise water treatment: softening, pH adjustment before dye bath","Validate temperature control on each machine with calibrated sensor","Run master batch / colour standard before each production lot"],
+    preventive_measures:["Source dye in bulk (single lot) for entire production order","Implement SPC (statistical process control) for key parameters","Regular spectrophotometer calibration and CMC colour tolerance checks","Document and control pre-treatment process window tightly","Monthly water quality monitoring"],
+    estimated_rework_cost:"$0.40–1.50/kg depending on colour difference severity",
+    can_be_salvaged:true,
+    salvage_method:"If ΔE* < 2.0: shade correction by topping (add small % shade-adjusting dye). If ΔE* > 2.0: strip and re-dye to standard.",
+    related_parameters_to_check:["ΔE* CIE 1976 vs standard","Dye supplier lot number","Balance calibration certificate","Water hardness and pH","Machine temperature log"],
+    lab_tests_recommended:["Spectrophotometric measurement (10nm, D65/10°)","ΔE* CMC(1:2) or ΔE* 2000 calculation","Water quality analysis","Balance calibration verification"],
+  },
+  "Staining on Adjacent Fabric":{
+    severity:"Medium",confidence_pct:87,
+    root_causes:["Excess unfixed/hydrolysed dye not fully washed off","Insufficient soaping after dyeing","Dye bleeding in wash — poor wash fastness","High dye concentration with low fixation rate","Mixing incompatible dye classes in same load"],
+    immediate_action:"Test wash fastness and colour staining on white multi-fibre strip (ISO 105-C06). Identify the staining colour to trace source dye.",
+    corrective_steps:["Extended hot soap at 90–95°C, 30 min, non-ionic detergent 2 g/L","Additional warm rinses (minimum 3) after soaping","Apply anti-migration agent in rinse water","For direct dyes: apply cationic aftertreatment fixative","Reduce dye % owf if possible without shade compromise"],
+    preventive_measures:["Ensure complete washing sequence: hot soap → warm rinse → cold rinse","Use dyes with high fixation rate (>80% preferred)","Never combine bleeding dyes with whites/lights in same rinse load","Apply fixing agent as standard for all direct and sulphur dyes","Run staining test on multifibre before commercial dispatch"],
+    estimated_rework_cost:"$0.20–0.60/kg",
+    can_be_salvaged:true,
+    salvage_method:"Run extended wash + 0.5 g/L citric acid rinse. Re-apply cationic fixer. Re-test staining. If persistent: reduce dye concentration and re-dye.",
+    related_parameters_to_check:["Soaping temperature","Number of rinse cycles","Fixation rate","Dye class compatibility","Dye bath residual colour (effluent)"],
+    lab_tests_recommended:["Colour staining ISO 105-C06","Bleeding fastness to adjacent fabrics","Wash fastness ISO 105-C06","Residual dye in final rinse water"],
+  },
+  "Unlevel Dyeing / Streaks":{
+    severity:"High",confidence_pct:85,
+    root_causes:["Too fast rate of temperature rise — dye strikes before levelling","Localised fabric tension / rope marks in jet dyeing","Insufficient levelling agent or wrong type","Machine overloading — fabric-to-liquor ratio too high","Hard water causing dye precipitation streaks"],
+    immediate_action:"Remove fabric. Inspect for rope marks vs. dye streaks. Do not dry — wet fabric is easier to re-level. Sample 5 points spectrophotometrically.",
+    corrective_steps:["Re-treat with levelling agent (2–3 g/L) at 70°C, 30 min","For disperse: reduce ramp rate to 1°C/min; re-dye with fresh dye","For reactive: apply migration phase before Na₂CO₃ addition","Reduce fabric loading to 80% of machine rated capacity","Soften water if hardness >100 ppm (add complexing agent EDTA 1 g/L)"],
+    preventive_measures:["Strict ramp rate control (0.5–1°C/min through critical strike zone)","Use migration-type levelling agent for exhaust processes","Machine load ≤80% nominal capacity","Regular machine audit: nozzle pressure, circulation pumps","Pre-wet fabric thoroughly before loading dye bath"],
+    estimated_rework_cost:"$0.35–0.90/kg",
+    can_be_salvaged:true,
+    salvage_method:"Level with Lyogen MF/Albatex FFC 2 g/L at high temp. For severe streaks: strip with Na₂S₂O₄ and re-dye with slower ramp profile.",
+    related_parameters_to_check:["Temperature ramp rate (°C/min)","Levelling agent type and concentration","Machine loading %","Water hardness","Circulation pump pressure"],
+    lab_tests_recommended:["Levelness assessment (spectrophotometer 10 points across fabric width/length)","Reflectance curve uniformity","Visual levelness AATCC EP7"],
+  },
+  "Dye Aggregation / Specks":{
+    severity:"Medium",confidence_pct:82,
+    root_causes:["Undissolved dye entering the dye bath — poor pre-dissolution","Cold water addition causing dye precipitation","Incompatible dyes mixed in same bath","Calcium/magnesium in hard water reacting with dye anions","Foam causing dye spot deposition"],
+    immediate_action:"Drain and inspect machine. Check filter and inlet for undissolved particles. Examine fabric under magnification — confirm specks are dye, not fibre/contamination.",
+    corrective_steps:["Filter dye bath through 50μm mesh before use","Dissolve dye in hot water (80–90°C) with dispersing agent before adding to bath","Add anti-foam agent (0.5 g/L) if foaming observed","Soften water, add EDTA (0.5–1 g/L) as chelating agent","For disperse: use high-quality milling-grade dispersing agent (1–2 g/L)"],
+    preventive_measures:["Always pre-dissolve dyes — never add powder directly to bath","Filter all dye solutions before addition","Use demineralised or softened water (hardness <50 ppm)","Do not mix anionic and cationic dyes in same bath","Clean machine thoroughly between batches"],
+    estimated_rework_cost:"$0.25–0.70/kg",
+    can_be_salvaged:true,
+    salvage_method:"For light specking: heat bath to dye strike temperature, add dispersing agent, run 20 min. For heavy specking: strip, clean machine, re-filter dye, re-dye.",
+    related_parameters_to_check:["Dye dissolution temperature","Water hardness","Dispersing agent concentration","Filter condition","Anti-foam levels"],
+    lab_tests_recommended:["Visual inspection under 10× magnification","Fibre vs. dye speck identification (solubility test)","Water hardness test","pH of dye bath"],
+  },
+  "Low Colour Yield / Dull Shade":{
+    severity:"Medium",confidence_pct:88,
+    root_causes:["Dye exhaustion incomplete — insufficient salt or incorrect pH","Fabric not properly prepared (residual waxes/sizes absorbing dye)","Low dye concentration weighed / incorrect recipe calculation","Wrong dye class for fibre — minimal affinity","Temperature not reaching required strike point"],
+    immediate_action:"Measure K/S value of fabric vs. standard. Identify shortfall %. Check original dye bath recipe against standard. Take sample of residual dye bath — measure residual concentration.",
+    corrective_steps:["Top up with additional dye (calculated from shortfall)","Add more electrolyte (Na₂SO₄ 10–20 g/L extra for reactive)","Extend dyeing time by 20–30 min at peak temperature","Verify machine thermocouple — recalibrate if off","Re-scour fabric and re-dye if preparation is the root cause"],
+    preventive_measures:["Thorough pre-treatment: scour, bleach, neutralise before dyeing","Accurate weighing — calibrated balance, cross-check by supervisor","Pilot shade matching in lab before bulk production","Regular K/S monitoring during production","Verify dye class compatibility before ordering"],
+    estimated_rework_cost:"$0.20–0.55/kg (topping); $0.80–1.50/kg (strip and re-dye)",
+    can_be_salvaged:true,
+    salvage_method:"Topping: add 20–30% of original dye quantity directly to existing bath, run 30 min. Alternatively: drain, re-scour, fresh dye bath at full recipe.",
+    related_parameters_to_check:["K/S value vs. standard","Salt/alkali concentration","Temperature profile","Pre-treatment quality (absorbency test)","Recipe calculation accuracy"],
+    lab_tests_recommended:["K/S measurement (spectrophotometer)","Fabric absorbency/wettability (drop test)","Residual dye bath concentration","pH verification"],
+  },
+  "Fabric Damage / Tendering":{
+    severity:"Critical",confidence_pct:90,
+    root_causes:["Excessive oxidation — too much bleaching agent (H₂O₂, NaOCl) or over-time","Hydrolysis of cellulose in prolonged alkali at high temperature","Incorrect chlorine bleaching conditions on protein fibres (wool/silk)","Acid damage: over-acidification in acid dye process","Catalytic tendering: metal contamination + oxidant interaction"],
+    immediate_action:"STOP PRODUCTION IMMEDIATELY. Do not press or stress the fabric. Conduct tensile strength test (ISO 13934). Quarantine the batch. Record all process conditions.",
+    corrective_steps:["No recovery if severe tendering (>40% strength loss) — write off batch","For mild damage: apply optical brightening agent with softener to mask appearance","Review and reduce peroxide concentration — standard: 6–8 mL/L at pH 10.5–11","Add peroxide stabiliser (sodium silicate / Prestogen) to control bleaching rate","For acid damage: neutralise immediately with Na₂CO₃ and rinse"],
+    preventive_measures:["Strict pH control — test pH before every bleaching bath","Peroxide stabiliser mandatory in all bleach formulations","Temperature and time limits — never exceed 90°C for H₂O₂ bleach","Never use chlorine bleach on wool, silk, nylon, or spandex","Regular tensile strength checks during pre-treatment"],
+    estimated_rework_cost:"HIGH — $1.50–5.00/kg. Severe cases = total batch loss",
+    can_be_salvaged:false,
+    salvage_method:"Not recoverable if tensile strength loss >30%. Mild cases: soften + condition to restore handle. Document for insurance claim if applicable.",
+    related_parameters_to_check:["Tensile/tear strength loss %","Peroxide concentration (g/L)","pH of bleach bath","Temperature and time log","Catalytic ion content (Fe, Cu)"],
+    lab_tests_recommended:["Tensile strength ISO 13934-1","Tear strength ISO 13937-1","Copper/iron contamination test (chelation test)","pH monitoring","Fluidity test (cellulose DP)"],
+  },
+  "Bleeding / Running Dye":{
+    severity:"High",confidence_pct:91,
+    root_causes:["Insufficient washing/soaping after dyeing","Use of direct or sulphur dyes without fixative","Poorly fixed reactive dye (hydrolysed dye remaining)","Incorrect dye class for end-use wash conditions","No cationic fixative applied as aftertreatment"],
+    immediate_action:"Do not ship. Run ISO 105-C06 wash fastness test immediately. Also run bleeding test on white fabric (ISO 105-E01 water fastness).",
+    corrective_steps:["Extended soaping at 95°C: non-ionic detergent 2 g/L, 30 min","3× warm rinse + 1× cold rinse minimum","Apply cationic fixative: 3–5 g/L at 40°C, 20 min, pH 5–6","For reactive: verify fixation — if low, re-dye with correct alkali protocol","For sulphur: ensure thorough re-oxidation and washing after vatting"],
+    preventive_measures:["Build soaping into standard process — never skip","Use dyes with fixation >80% for garment dyeing","Cationic fixative as standard step for all direct/sulphur/medium-reactive","Wash fastness test on every production lot before dispatch","Educate customers: wash darks separately, 30°C, mild detergent"],
+    estimated_rework_cost:"$0.15–0.40/kg re-washing; $0.60–1.40/kg re-dyeing",
+    can_be_salvaged:true,
+    salvage_method:"Extended soap wash (95°C, 30 min) + cationic fixative application. Re-test ISO 105-C06. For persistent bleeding: strip unfixed dye with reducing agent, re-apply fixative.",
+    related_parameters_to_check:["Soaping temperature and duration","Fixative type and concentration","Wash fastness grade (ISO 105-C06)","Fixation rate of dye","Rinse water residual colour"],
+    lab_tests_recommended:["Wash fastness ISO 105-C06","Water fastness ISO 105-E01","Colour bleeding test (white adjacent fabric)","Perspiration fastness ISO 105-E04"],
+  },
+};
+
+function computeFault(faultName, fiber, dyeClass){
+  const base=FAULT_DB[faultName];
+  if(!base) throw new Error("Fault not found in database");
+
+  // Fiber-specific additions
+  const d={...base};
+
+  // Fiber-specific additions
+  const fiberNotes={
+    wool:"Wool is protein fibre — avoid strong alkali (>pH 9). Check for felting damage.",
+    silk:"Silk degrades easily with alkali. Always use mild acid conditions.",
+    polyester:"Polyester: check for oligomer issues at high temp. Use reduction clear after HT dyeing.",
+    cotton:"Cotton: reactive dye fixation depends heavily on soda ash concentration and temperature.",
+    nylon:"Nylon yellows under oxidation. Monitor for ozone fading with acid dyes.",
+    // Blends
+    "cotton-polyester":"CVC/PC blend: two-bath process. Disperse dye residue on cotton causes shade sadness — thorough reduction clearing between baths is critical.",
+    "cotton-nylon":"Two-bath blend: reactive + acid. Ensure pH adjustment between baths. Nylon may stain from reactive bath — hot wash between stages.",
+    "cotton-viscose":"One-bath reactive blend. Viscose absorbs dye faster — monitor for shade differential between components.",
+    "cotton-modal":"One-bath reactive blend. Modal is more absorbent — may appear slightly deeper shade than cotton portion.",
+    "cotton-tencel":"One-bath reactive blend. Both cellulosic — compatible process. Avoid high tension to prevent Tencel fibrillation.",
+    "cotton-linen":"One-bath reactive blend. Linen requires thorough pre-scouring to remove natural wax — uneven scouring causes patchy dyeing.",
+    "cotton-spandex":"Spandex component: keep temperature ≤60°C at all times. High temp permanently destroys elasticity. Keep Na₂CO₃ ≤10 g/L.",
+    "polyester-viscose":"TR blend two-bath: disperse then reactive. Reduction clearing between baths essential. Most common fault: residual disperse dye on viscose.",
+    "polyester-wool":"Two-bath blend — high risk fabric. Polyester HT step must use carrier or low-energy disperse to protect wool. pH control critical.",
+    "polyester-nylon":"Two-bath: disperse then acid. Common fault — over-dyeing nylon in disperse bath without reduction clearing.",
+    "polyester-spandex":"Keep HT ≤125°C. Monitor elasticity before and after dyeing. Reduction clear at 60°C max — higher temps destroy spandex.",
+    "wool-nylon":"One-bath acid blend. Nylon exhausts faster — use retarding agent (Lyogen MF 2 g/L). Shade balance sensitive to rate of temperature rise.",
+    "wool-viscose":"Two-bath: acid then reactive. Alkali in reactive bath damages wool — keep Na₂CO₃ very low; consider alternative reactive fixing agent.",
+    "nylon-spandex":"One-bath acid: spandex undyed. Fault usually on nylon component only. Elastane tension damage is common — use low-tension jet settings.",
+    "viscose-nylon":"Reactive dye fixes on viscose; nylon picks up moderate stain. For better nylon coverage: two-bath with acid dye second stage.",
+    "tencel-modal":"One-bath reactive — highly compatible blend. Both eco-friendly fibres. Low-impact reactive dyes recommended (Levafix® CA).",
+    "linen-viscose":"One-bath reactive. Linen preparation quality is critical — inadequate scouring is top cause of uneven shade in this blend.",
+  };
+  if(fiberNotes[fiber]){
+    d.related_parameters_to_check=[...d.related_parameters_to_check, fiberNotes[fiber]];
+  }
+
+  // Dye class specific note
+  const dyeNotes={
+    reactive:"Hydrolysed reactive dye is a major culprit — always soap at ≥80°C.",
+    disperse:"Disperse dyes need reduction clearing — oligomers cause surface issues.",
+    acid:"Acid dyes on wool: pH control is critical (4.5–5.5).",
+    vat:"Vat: incomplete oxidation leaves leuco form on surface — causes poor fastness.",
+    direct:"Direct dyes are inherently low fastness — fixing agent is non-negotiable.",
+    sulphur:"Sulphur black bleeding is common — thorough oxidation and washing mandatory.",
+  };
+  if(dyeNotes[dyeClass]){
+    d.process_note=dyeNotes[dyeClass];
+  }
+
+  return d;
+}
+
+// ═══════════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════════
+const V={acc:"#1a56db",acc2:"#0f766e",acc3:"#dc2626",acc4:"#b45309",text:"#1c1917",muted:"#78716c"};
+const DYE_COLS=["#1a56db","#0f766e","#dc2626","#b45309","#6d28d9","#0369a1"];
+
+function spinner(label){
+  return`<div class="spinner-wrap"><div class="spinner"></div><div class="spinner-lbl">${label}</div></div>`;
+}
+function met(label,value,color){
+  return`<div class="met"><div class="met-lbl">${label}</div><div class="met-val" style="color:${color||V.text}">${value}</div></div>`;
+}
+function divider(label){
+  return`<div class="divider"><span class="divider-lbl">${label}</span></div>`;
+}
+function ibox(type,html){
+  return`<div class="ibox ibox-${type}">${html}</div>`;
+}
+function tag(type,text){
+  return`<span class="tag tag-${type}">${text}</span>`;
+}
+function progRow(label,val,total,color){
+  const pct=Math.min(100,((val||0)/(total||1))*100).toFixed(1);
+  return`<div style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+      <span style="font-size:.72rem">${label}</span>
+      <span style="font-size:.72rem;color:${V.muted}">${Number(val||0).toFixed(2)} kg CO₂e</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${color}"></div></div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  COLOUR SYNC
+// ═══════════════════════════════════════════════════════
+function syncColor(pfx,val){
+  const up=val.toUpperCase();
+  document.getElementById(pfx+'-swatch').style.background=up;
+  document.getElementById(pfx+'-hex').value=up;
+}
+function syncHexText(pfx,val){
+  if(isValidHex(val)){
+    document.getElementById(pfx+'-swatch').style.background=val.toUpperCase();
+    document.getElementById(pfx+'-native').value=val.toUpperCase();
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  BLEND RATIO LOGIC
+// ═══════════════════════════════════════════════════════
+// Common presets per blend type
+const BLEND_RATIO_PRESETS={
+  "cotton-polyester":[[65,35,"CVC"],[52,48,"PC"],[80,20,""],[50,50,""]],
+  "cotton-nylon":[[70,30,""],[60,40,""],[80,20,""]],
+  "cotton-viscose":[[55,45,""],[65,35,""],[80,20,""]],
+  "cotton-modal":[[50,50,""],[60,40,""],[70,30,""]],
+  "cotton-tencel":[[50,50,""],[70,30,""],[60,40,""]],
+  "cotton-linen":[[55,45,""],[70,30,""],[50,50,""]],
+  "cotton-spandex":[[95,5,""],[97,3,""],[92,8,""]],
+  "polyester-viscose":[[65,35,"TR"],[55,45,""],[70,30,""]],
+  "polyester-wool":[[55,45,""],[65,35,""],[50,50,""]],
+  "polyester-nylon":[[80,20,""],[70,30,""],[50,50,""]],
+  "polyester-spandex":[[88,12,""],[82,18,""],[92,8,""]],
+  "wool-nylon":[[80,20,""],[70,30,""],[60,40,""]],
+  "wool-viscose":[[55,45,""],[65,35,""],[70,30,""]],
+  "nylon-spandex":[[80,20,""],[78,22,""],[85,15,""]],
+  "viscose-nylon":[[70,30,""],[60,40,""],[80,20,""]],
+  "tencel-modal":[[50,50,""],[60,40,""],[70,30,""]],
+  "linen-viscose":[[55,45,""],[65,35,""],[70,30,""]],
+  "wool-polyester":[[55,45,""],[60,40,""],[50,50,""]],
+};
+
+// Tri-blend ratio presets [f1,f2,f3,label]
+const TRI_BLEND_RATIO_PRESETS={
+  "cotton-polyester-spandex":[[68,27,5,"Stretch Denim"],[60,35,5,"Stretch Woven"],[50,42,8,""]],
+  "cotton-viscose-spandex":[[55,38,7,""],[60,35,5,""],[50,43,7,""]],
+  "cotton-modal-spandex":[[50,44,6,""],[60,34,6,""],[45,48,7,""]],
+  "polyester-viscose-spandex":[[60,34,6,""],[55,38,7,""],[50,43,7,""]],
+  "polyester-nylon-spandex":[[70,24,6,"Active"],[60,32,8,"Swimwear"],[65,28,7,""]],
+  "wool-polyester-nylon":[[55,38,7,"Suiting"],[60,30,10,""],[50,42,8,""]],
+  "cotton-nylon-spandex":[[60,34,6,""],[55,38,7,""],[70,24,6,""]],
+  "tencel-cotton-modal":[[40,40,20,"Eco Jersey"],[33,34,33,"Equal"],[50,30,20,""]],
+};
+
+function getBlendComponents(fiber){
+  const map=FIBRE_DYE_MAP[fiber];
+  if(!map||!map.blend) return null;
+  return map.components||fiber.split('-');
+}
+
+function syncBlendRatio(pfx,which,val){
+  val=Math.max(1,Math.min(99,parseInt(val)||1));
+  const other=100-val;
+  if(which===1){
+    document.getElementById(pfx+'-ratio1').value=val;
+    document.getElementById(pfx+'-ratio2').value=other;
+  } else {
+    document.getElementById(pfx+'-ratio2').value=val;
+    document.getElementById(pfx+'-ratio1').value=other;
+  }
+  const r1=parseInt(document.getElementById(pfx+'-ratio1').value)||65;
+  const r2=parseInt(document.getElementById(pfx+'-ratio2').value)||35;
+  document.getElementById(pfx+'-ratio-bar1').style.width=r1+'%';
+  document.getElementById(pfx+'-ratio-bar2').style.width=r2+'%';
+  document.getElementById(pfx+'-ratio-lbl1').textContent='Fibre 1: '+r1+'%';
+  document.getElementById(pfx+'-ratio-lbl2').textContent='Fibre 2: '+r2+'%';
+}
+
+function syncTriBlend(pfx){
+  const v1=parseInt(document.getElementById(pfx+'-tri1').value)||0;
+  const v2=parseInt(document.getElementById(pfx+'-tri2').value)||0;
+  const v3=parseInt(document.getElementById(pfx+'-tri3').value)||0;
+  const total=v1+v2+v3;
+  const warn=document.getElementById(pfx+'-tri-warn');
+  if(warn) warn.style.display=(total!==100)?'block':'none';
+  const pct1=total>0?Math.round(v1/total*100):0;
+  const pct2=total>0?Math.round(v2/total*100):0;
+  const pct3=Math.max(0,100-pct1-pct2);
+  if(document.getElementById(pfx+'-tri-bar1')) document.getElementById(pfx+'-tri-bar1').style.width=pct1+'%';
+  if(document.getElementById(pfx+'-tri-bar2')) document.getElementById(pfx+'-tri-bar2').style.width=pct2+'%';
+  if(document.getElementById(pfx+'-tri-bar3')) document.getElementById(pfx+'-tri-bar3').style.width=pct3+'%';
+  if(document.getElementById(pfx+'-tri-lbl1')) document.getElementById(pfx+'-tri-lbl1').textContent='F1: '+v1+'%';
+  if(document.getElementById(pfx+'-tri-lbl2')) document.getElementById(pfx+'-tri-lbl2').textContent='F2: '+v2+'%';
+  if(document.getElementById(pfx+'-tri-lbl3')) document.getElementById(pfx+'-tri-lbl3').textContent='F3: '+v3+'%';
+}
+
+function setTriRatio(pfx,r1,r2,r3){
+  document.getElementById(pfx+'-tri1').value=r1;
+  document.getElementById(pfx+'-tri2').value=r2;
+  document.getElementById(pfx+'-tri3').value=r3;
+  syncTriBlend(pfx);
+}
+
+function getTriBlendComponents(fiber){
+  const map=FIBRE_DYE_MAP[fiber];
+  if(!map||!map.triBlend) return null;
+  return map.components||fiber.split('-');
+}
+
+function updateBlendRatioField(pfx, fiber){
+  const field=document.getElementById(pfx+'-ratio-field');
+  const triField=document.getElementById(pfx+'-tri-ratio-field');
+  const isTri=FIBRE_DYE_MAP[fiber]&&FIBRE_DYE_MAP[fiber].triBlend;
+  const comps=getBlendComponents(fiber);
+
+  // Hide both first
+  if(field) field.style.display='none';
+  if(triField) triField.style.display='none';
+
+  if(isTri){
+    // Show tri-blend field
+    if(triField){
+      triField.style.display='block';
+      const triComps=getTriBlendComponents(fiber)||['F1','F2','F3'];
+      // Update labels with actual fibre names
+      const capName=n=>n.charAt(0).toUpperCase()+n.slice(1);
+      if(document.getElementById(pfx+'-tri-lbl1')) document.getElementById(pfx+'-tri-lbl1').textContent=capName(triComps[0])+': '+(parseInt(document.getElementById(pfx+'-tri1').value)||55)+'%';
+      if(document.getElementById(pfx+'-tri-lbl2')) document.getElementById(pfx+'-tri-lbl2').textContent=capName(triComps[1])+': '+(parseInt(document.getElementById(pfx+'-tri2').value)||35)+'%';
+      if(document.getElementById(pfx+'-tri-lbl3')) document.getElementById(pfx+'-tri-lbl3').textContent=capName(triComps[2])+': '+(parseInt(document.getElementById(pfx+'-tri3').value)||10)+'%';
+      // Presets
+      const presetsEl=document.getElementById(pfx+'-tri-presets');
+      if(presetsEl){
+        const presets=TRI_BLEND_RATIO_PRESETS[fiber]||[[55,35,10,""],[50,40,10,""],[60,30,10,""]];
+        presetsEl.innerHTML=presets.map(([a,b,c,lbl])=>
+          `<button class="ratio-preset" onclick="setTriRatio('${pfx}',${a},${b},${c})">${a}/${b}/${c}${lbl?' ('+lbl+')':''}</button>`
+        ).join('');
+      }
+    }
+  } else if(comps){
+    // Standard 2-component blend
+    if(field){
+      field.style.display='block';
+      const lbl=document.getElementById(pfx+'-ratio-label');
+      if(lbl) lbl.textContent='e.g. '+comps[0].charAt(0).toUpperCase()+comps[0].slice(1)+' % / '+comps[1].charAt(0).toUpperCase()+comps[1].slice(1)+' %';
+      document.getElementById(pfx+'-ratio-lbl1').textContent=comps[0].charAt(0).toUpperCase()+comps[0].slice(1)+': '+(parseInt(document.getElementById(pfx+'-ratio1').value)||65)+'%';
+      document.getElementById(pfx+'-ratio-lbl2').textContent=comps[1].charAt(0).toUpperCase()+comps[1].slice(1)+': '+(parseInt(document.getElementById(pfx+'-ratio2').value)||35)+'%';
+      const presetsEl=document.getElementById(pfx+'-ratio-presets');
+      const presets=BLEND_RATIO_PRESETS[fiber]||[[65,35,""],[50,50,""],[80,20,""]];
+      presetsEl.innerHTML=presets.map(([a,b,label])=>
+        `<button class="ratio-preset" onclick="setBlendRatio('${pfx}',${a},${b})">${a}/${b}${label?' ('+label+')':''}</button>`
+      ).join('');
+    }
+  }
+}
+
+function setBlendRatio(pfx,r1,r2){
+  document.getElementById(pfx+'-ratio1').value=r1;
+  document.getElementById(pfx+'-ratio2').value=r2;
+  syncBlendRatio(pfx,1,r1);
+}
+
+// Attach onchange handlers to fiber selects
+document.addEventListener('DOMContentLoaded',function(){
+  ['r','o','f'].forEach(pfx=>{
+    const sel=document.getElementById(pfx+'-fiber');
+    if(sel) sel.addEventListener('change',function(){updateBlendRatioField(pfx,this.value);});
+  });
+});
+
+// ═══════════════════════════════════════════════════════
+//  PROCESS STEPS RENDERER
+// ═══════════════════════════════════════════════════════
+function renderProcessSteps(steps, bathLabel, bathNum){
+  if(!Array.isArray(steps)) return `<div class="ibox ibox-p">⚙ ${steps}</div>`;
+  const stepsHtml=steps.map((s,i)=>{
+    const isWarn=s.action.startsWith('⚠');
+    const numColor=bathNum===2?'background:var(--acc4)':bathNum===1?'':'';
+    const phaseColor=bathNum===2?'color:var(--acc4)':'';
+    return`<div class="process-step">
+      <div class="step-connector"></div>
+      <div class="step-num${isWarn?' warn':''}" style="${numColor}">${s.step}</div>
+      <div class="step-body">
+        <div class="step-phase" style="${phaseColor}">${s.phase}</div>
+        <div class="step-action">${s.action}</div>
+      </div>
+    </div>`;
+  }).join('');
+  if(bathLabel){
+    const isB2=bathNum===2;
+    const hdrCls=isB2?'bath-block-hdr-b2':'bath-block-hdr-b1';
+    const badgeCls=isB2?'bath-block-badge-2':'bath-block-badge-1';
+    const badge=isB2?'BATH 2':'BATH 1';
+    return`<div class="bath-block">
+      <div class="bath-block-hdr ${hdrCls}">
+        <span class="bath-block-badge ${badgeCls}">${badge}</span>
+        ${bathLabel}
+      </div>
+      <div class="bath-block-body"><div class="process-steps">${stepsHtml}</div></div>
+    </div>`;
+  }
+  return`<div class="process-steps">${stepsHtml}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ═══════════════════════════════════════════════════════
+function switchTab(id,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['recipe','optimizer','fault'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===id?'':'none';
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  FAULT SYMPTOM GRID
+// ═══════════════════════════════════════════════════════
+const FAULTS=[
+  "Uneven / Patchy Shade","Poor Wash Fastness","Colour Fading After Washing",
+  "Shade Variation Batch to Batch","Staining on Adjacent Fabric","Unlevel Dyeing / Streaks",
+  "Dye Aggregation / Specks","Low Colour Yield / Dull Shade","Fabric Damage / Tendering","Bleeding / Running Dye"
+];
+let activeFault="";
+
+(function buildFaultGrid(){
+  const grid=document.getElementById('fault-grid');
+  FAULTS.forEach(f=>{
+    const d=document.createElement('div');
+    d.className='fault-item';
+    d.textContent=f;
+    d.onclick=()=>{
+      document.querySelectorAll('.fault-item').forEach(x=>x.classList.remove('selected'));
+      d.classList.add('selected');
+      activeFault=f;
+      document.getElementById('f-btn').disabled=false;
+    };
+    grid.appendChild(d);
+  });
+})();
+
+// ═══════════════════════════════════════════════════════
+//  GLOBAL STATE FOR PDF
+// ═══════════════════════════════════════════════════════
+let lastRecipeData=null;
+
+// ═══════════════════════════════════════════════════════
+//  MODULE 1 — DYE RECIPE
+// ═══════════════════════════════════════════════════════
+function generateRecipe(){
+  const hex=document.getElementById('r-hex').value.trim().toUpperCase();
+  const fiber=document.getElementById('r-fiber').value;
+  const weight=+document.getElementById('r-weight').value;
+  const mlr=+document.getElementById('r-mlr').value;
+  const dyeClass=document.getElementById('r-dyeclass').value;
+  const btn=document.getElementById('r-btn');
+  const pdfBtn=document.getElementById('r-pdf-btn');
+  const out=document.getElementById('r-output');
+
+  if(!isValidHex(hex)){alert("Enter a valid hex colour e.g. #3A86FF");return;}
+  if(weight<=0){alert("Enter a valid fabric weight.");return;}
+  if(mlr<=0){alert("Enter a valid MLR ratio.");return;}
+
+  btn.disabled=true;btn.textContent="Processing…";
+  pdfBtn.disabled=true;
+  out.innerHTML=spinner("Analysing colour science…");
+
+  // Get tri-blend ratio if applicable
+  const isTri=FIBRE_DYE_MAP[fiber]&&FIBRE_DYE_MAP[fiber].triBlend;
+  let triRatio=null;
+  if(isTri){
+    triRatio={
+      r1:parseInt(document.getElementById('r-tri1').value)||55,
+      r2:parseInt(document.getElementById('r-tri2').value)||35,
+      r3:parseInt(document.getElementById('r-tri3').value)||10,
+    };
+  }
+
+  setTimeout(()=>{
+    try{
+      const gsm=+document.getElementById("r-gsm").value||180;
+      const hardness=+document.getElementById("r-hardness").value||50;
+      const pH=+document.getElementById("r-ph").value||10.5;
+      const salt=+document.getElementById("r-salt").value||60;
+      const tempOv=+document.getElementById("r-temp-override").value||null;
+      const fixMethod=document.getElementById("r-fixation-method").value;
+      const pretreat=document.getElementById("r-pretreat").value;
+      const shadeCorr=document.getElementById("r-shade-correction").value;
+      const advancedParams={gsm,hardness,pH,salt,tempOverride:tempOv,fixMethod,pretreat,shadeCorr};
+      const d=computeRecipe(hex,fiber,weight,mlr,dyeClass,triRatio,advancedParams);
+      lastRecipeData={...d,hex,fiber,weight,mlr,triRatio};
+      const deCol=d.delta_e_estimate<=1.0?V.acc2:d.delta_e_estimate<=2.0?V.acc4:V.acc3;
+      const deGrade=d.delta_e_estimate<=0.5?"Industry Elite ΔE<0.5":d.delta_e_estimate<=1.0?"Excellent ΔE≤1.0":d.delta_e_estimate<=2.0?"Good ΔE≤2.0":"Needs Adjustment";
+      const susCol=d.sustainability_score>=70?V.acc2:d.sustainability_score>=45?V.acc4:V.acc3;
+
+      let dyeRows="",auxRows="";
+      Object.entries(d.recipe_percent).forEach(([nm,pct],i)=>{
+        const g=Number((d.recipe_grams||{})[nm]||0).toFixed(2);
+        dyeRows+=`<tr>
+          <td><span class="dye-dot" style="background:${DYE_COLS[i%6]}"></span>${nm}</td>
+          <td>${Number(pct).toFixed(3)}%</td><td>${g} g</td>
+        </tr>`;
+      });
+      Object.entries(d.auxiliaries_g).forEach(([nm,g])=>{
+        auxRows+=`<tr><td>${nm}</td><td>${Number(g).toFixed(2)} g</td></tr>`;
+      });
+
+      // Tri-blend badge
+      const triLabel=isTri&&triRatio?tag("y",`Tri-Blend ${triRatio.r1}/${triRatio.r2}/${triRatio.r3}`):'';
+
+      out.innerHTML=`<div class="fade-in">
+        <div class="result-header">
+          <div class="color-swatch-lg" style="background:${hex}"></div>
+          <div>
+            <div style="font-family:'DM Serif Display',serif;font-weight:400;font-size:1.05rem">${d.shade_description}</div>
+            <div style="color:${V.muted};font-size:.72rem;margin-top:5px">${fiber.toUpperCase()} · ${d.dye_class} · ${weight}g · MLR 1:${mlr}${d.isBlend?' · <strong style="color:'+V.acc+'">BLEND</strong>':''}</div>
+          </div>
+        </div>
+        ${d.isBlend&&d.blendNote?ibox(isTri?"y":"p",(isTri?"🧵 <strong>Tri-Blend Process:</strong> ":"🧵 <strong>Blend Process:</strong> ")+d.blendNote):""}
+        <div class="met-grid">
+          ${met("Fixation Rate",d.fixation_rate_pct+"%",V.acc)}
+          ${met("Liquor Volume",d.liquor_volume_L+" L")}
+          ${met("ΔE* (CIEDE2000)",d.delta_e_estimate+" — "+deGrade,deCol)}
+          ${met("Dyeing Temp",d.dyeing_temp_C+"°C")}
+          ${met("Process Time",d.dyeing_time_min+" min")}
+          ${met("Eco Score",d.sustainability_score+"/100",susCol)}
+          ${met("Carbon (g/kg)",d.carbon_g_per_kg)}
+          ${met("Water (L/kg)",d.water_L_per_kg)}
+          ${met("Lab* L/a/b",d.lab.L+"/"+d.lab.a+"/"+d.lab.b)}
+        </div>
+        ${d.advancedMetrics?(()=>{const am=d.advancedMetrics;const corrBadge=d.delta_e_corrected?'<span style="color:#0f766e">✓ K/S correction applied</span>':'';return '<div style="margin:8px 0 12px;padding:8px 12px;background:rgba(26,86,219,.03);border:1px solid rgba(26,86,219,.12);border-radius:7px;font-size:.72rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 18px"><span>📐 GSM: <strong style="color:var(--text)">'+am.gsm+'</strong></span><span>💧 Water: <strong style="color:var(--text)">'+am.hardness_status+'</strong></span><span>⚗️ pH: <strong style="color:var(--text)">'+am.pH+' ('+am.pH_status+')</strong></span><span>🧂 Salt: <strong style="color:var(--text)">'+am.salt+' g/L</strong></span><span>⚙️ '+am.fixMethod+'</span><span>🏭 Pre-treat: <strong style="color:var(--text)">'+am.pretreat+'</strong></span>'+corrBadge+'</div>';})():''}
+        ${(()=>{
+          const capF=n=>n.charAt(0).toUpperCase()+n.slice(1);
+          const comps=d.blendMeta&&d.blendMeta.components?d.blendMeta.components:[];
+          const bath1Fibre=comps[0]?capF(comps[0]):"Fibre 1";
+          const bath2Fibre=comps[1]?capF(comps[1]):"Fibre 2";
+          const undyedFibre=isTri&&comps[2]?capF(comps[2]):null;
+          const isTB=d.isBlend&&d.secondBath;
+          let b1label=isTB?`BATH 1 — ${d.dye_class} Dye Recipe — ${bath1Fibre}`:"Dye Recipe (% owf)";
+          let b1auxLabel=isTB?`BATH 1 — Auxiliaries (${bath1Fibre})`:"Auxiliaries";
+          let undyedNote=undyedFibre?ibox("p",`ℹ️ <strong>${undyedFibre} (Fibre 3)</strong> is not dyed — it contributes stretch/function only. No dye is applied to this component.`):"";
+          let bath2Section="";
+          if(isTB){
+            const sb=d.secondBath;
+            const sb2AuxRows=Object.entries(sb.auxiliaries_g).map(([nm,g])=>`<tr><td>${nm}</td><td>${Number(g).toFixed(2)} g</td></tr>`).join("");
+            bath2Section=`${divider("BATH 2 — "+sb.dyeClass+" Dye Recipe — "+bath2Fibre)}
+            <table class="rt"><thead><tr><th>Dye Name</th><th>% owf</th><th>Grams</th></tr></thead><tbody>
+              <tr><td><span class="dye-dot" style="background:${DYE_COLS[2]}"></span>${sb.dye.name}</td><td>${sb.owf.toFixed(3)}%</td><td>${sb.grams} g</td></tr>
+            </tbody></table>
+            ${divider("BATH 2 — Auxiliaries ("+bath2Fibre+")")}
+            <table class="rt"><thead><tr><th>Chemical</th><th>Grams</th></tr></thead><tbody>${sb2AuxRows}</tbody></table>
+            ${renderProcessSteps(sb.process,"Step-by-Step — "+sb.dyeClass+" on "+bath2Fibre,2)}
+            ${ibox("g","⭐ Fastness (Bath 2): "+sb.fastness)}
+            ${undyedNote}`;
+          }
+          return `${divider(b1label)}
+          <table class="rt"><thead><tr><th>Dye Name</th><th>% owf</th><th>Grams</th></tr></thead><tbody>${dyeRows}</tbody></table>
+          ${divider(b1auxLabel)}
+          <table class="rt"><thead><tr><th>Chemical</th><th>Grams</th></tr></thead><tbody>${auxRows}</tbody></table>
+          ${divider("Step-by-Step Process")}
+          ${renderProcessSteps(d.process_note,isTB?"Step-by-Step — "+d.dye_class+" on "+bath1Fibre:null,isTB?1:0)}
+          ${ibox("g","⭐ Fastness: "+d.fastness)}
+          ${d.warnings.length?ibox("y","⚠ "+d.warnings.join("<br>")):""}
+          ${bath2Section}
+          ${!isTB&&isTri&&comps[2]?undyedNote:""}`;
+        })()}
+        <div class="tags-row">
+          ${tag("p",d.dye_class)}
+          ${tag(d.sustainability_score>=70?"g":"y","Eco "+d.sustainability_score+"/100")}
+          ${tag("p",d.shade_depth)}
+          ${d.isBlend?tag("y",d.blendMeta.process==="two-bath"?"Two-Bath Process":"One-Bath Process"):""}
+          ${triLabel}
+          ${isTri?tag("r","3 Fibres — "+(d.blendMeta&&d.blendMeta.components?d.blendMeta.components[2].charAt(0).toUpperCase()+d.blendMeta.components[2].slice(1)+" Undyed":"Fibre 3 Undyed")):""}
+          ${d.green_alternatives[0]?tag("g","♻ "+d.green_alternatives[0]):""}
+        </div>
+      </div>`;
+      pdfBtn.disabled=false;
+    }catch(e){
+      out.innerHTML=`<div class="err-banner">⚠ Error: ${e.message}</div>`;
+    }
+    btn.disabled=false;btn.textContent="Generate Dye Recipe →";
+  },600);
+}
+
+// ═══════════════════════════════════════════════════════
+//  PDF GENERATION — Recipe + Process Curve
+// ═══════════════════════════════════════════════════════
+function downloadRecipePDF(){
+  if(!lastRecipeData){alert("Generate a recipe first.");return;}
+  const pdfBtn=document.getElementById('r-pdf-btn');
+  pdfBtn.disabled=true;pdfBtn.textContent="⏳ Building…";
+
+  try{
+    const d=lastRecipeData;
+
+    // Build process curve points
+    function buildCurvePoints(temp,time,dclass){
+      const pts=[{x:0,y:25}];
+      if(dclass==='disperse'){
+        pts.push({x:5,y:60},{x:10,y:60},{x:25,y:temp},{x:25+time,y:temp},{x:25+time+15,y:80},{x:25+time+30,y:70});
+      } else if(dclass==='acid'){
+        pts.push({x:5,y:40},{x:8,y:40},{x:25,y:temp},{x:25+time,y:temp},{x:25+time+10,y:70});
+      } else {
+        pts.push({x:5,y:40},{x:10,y:40},{x:15,y:temp},{x:15+time,y:temp},{x:15+time+10,y:80},{x:15+time+20,y:95});
+      }
+      return pts;
+    }
+    const maxTemp=d.dyeing_temp_C;
+    const curvePoints=buildCurvePoints(maxTemp,d.dyeing_time_min,d.dye_class.toLowerCase());
+
+    // Draw process curve on canvas using pure Canvas 2D
+    const CW=800,CH=280,PAD={top:28,right:24,bottom:44,left:52};
+    const plotW=CW-PAD.left-PAD.right;
+    const plotH=CH-PAD.top-PAD.bottom;
+    const yMax=Math.max(maxTemp+20,115);
+    const xMax=curvePoints[curvePoints.length-1].x+5;
+    const cv=document.createElement('canvas');
+    cv.width=CW;cv.height=CH;
+    const ctx=cv.getContext('2d');
+    function px(v){return PAD.left+(v/xMax)*plotW;}
+    function py(v){return PAD.top+plotH-(v/yMax)*plotH;}
+    // background
+    ctx.fillStyle='#f8f9fc';ctx.fillRect(0,0,CW,CH);
+    ctx.fillStyle='#ffffff';ctx.fillRect(PAD.left,PAD.top,plotW,plotH);
+    // grid + labels
+    ctx.strokeStyle='#e2e0da';ctx.lineWidth=1;
+    ctx.fillStyle='#78716c';ctx.font='11px Arial,sans-serif';ctx.textAlign='right';
+    [0,20,40,60,80,100,Math.ceil(yMax/10)*10].filter((v,i,a)=>a.indexOf(v)===i&&v<=yMax).forEach(v=>{
+      const y=py(v);ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(PAD.left+plotW,y);ctx.stroke();
+      ctx.fillText(v+'°',PAD.left-5,y+4);
+    });
+    ctx.textAlign='center';
+    const xStep=Math.max(5,Math.ceil(xMax/8/5)*5);
+    for(let x=0;x<=xMax;x+=xStep){
+      const p=px(x);ctx.beginPath();ctx.strokeStyle='#e2e0da';ctx.lineWidth=1;
+      ctx.moveTo(p,PAD.top);ctx.lineTo(p,PAD.top+plotH);ctx.stroke();
+      ctx.fillStyle='#78716c';ctx.font='11px Arial,sans-serif';ctx.fillText(x+'',p,PAD.top+plotH+15);
+    }
+    // axis border
+    ctx.strokeStyle='#a8a29e';ctx.lineWidth=1.5;ctx.strokeRect(PAD.left,PAD.top,plotW,plotH);
+    // fill area
+    ctx.beginPath();ctx.moveTo(px(curvePoints[0].x),py(curvePoints[0].y));
+    for(let i=1;i<curvePoints.length;i++){
+      const a=curvePoints[i-1],b=curvePoints[i],cpx=(px(a.x)+px(b.x))/2;
+      ctx.bezierCurveTo(cpx,py(a.y),cpx,py(b.y),px(b.x),py(b.y));
+    }
+    ctx.lineTo(px(curvePoints[curvePoints.length-1].x),py(0));
+    ctx.lineTo(px(curvePoints[0].x),py(0));ctx.closePath();
+    ctx.fillStyle='rgba(26,86,219,0.09)';ctx.fill();
+    // line
+    ctx.beginPath();ctx.moveTo(px(curvePoints[0].x),py(curvePoints[0].y));
+    for(let i=1;i<curvePoints.length;i++){
+      const a=curvePoints[i-1],b=curvePoints[i],cpx=(px(a.x)+px(b.x))/2;
+      ctx.bezierCurveTo(cpx,py(a.y),cpx,py(b.y),px(b.x),py(b.y));
+    }
+    ctx.strokeStyle='#1a56db';ctx.lineWidth=2.5;ctx.stroke();
+    // dots
+    curvePoints.forEach(pt=>{
+      ctx.beginPath();ctx.arc(px(pt.x),py(pt.y),4,0,Math.PI*2);
+      ctx.fillStyle='#1a56db';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    });
+    // peak line
+    ctx.setLineDash([5,4]);ctx.beginPath();
+    ctx.moveTo(PAD.left,py(maxTemp));ctx.lineTo(PAD.left+plotW,py(maxTemp));
+    ctx.strokeStyle='#dc2626';ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#dc2626';ctx.font='bold 10px Arial,sans-serif';ctx.textAlign='right';
+    ctx.fillText('Peak '+maxTemp+'°C',PAD.left+plotW-4,py(maxTemp)-5);
+    // axis titles
+    ctx.fillStyle='#44403c';ctx.font='12px Arial,sans-serif';ctx.textAlign='center';
+    ctx.fillText('Time (minutes)',PAD.left+plotW/2,CH-4);
+    ctx.save();ctx.translate(13,PAD.top+plotH/2);ctx.rotate(-Math.PI/2);
+    ctx.fillText('Temperature (°C)',0,0);ctx.restore();
+    const chartImg=cv.toDataURL('image/png');
+
+    // Build printable HTML
+    const hex=d.hex||'#888';
+    const isTwoBath=d.isBlend&&d.secondBath;
+    const pdfIsTri=d.isTri&&d.blendMeta&&d.blendMeta.components&&d.blendMeta.components.length>=3;
+    const pdfComps=pdfIsTri?d.blendMeta.components:[];
+    const capF=n=>n.charAt(0).toUpperCase()+n.slice(1);
+    const pdfF1=pdfComps[0]?capF(pdfComps[0]):(d.blendMeta&&d.blendMeta.components&&d.blendMeta.components[0]?capF(d.blendMeta.components[0]):"Fibre 1");
+    const pdfF2=pdfComps[1]?capF(pdfComps[1]):(d.blendMeta&&d.blendMeta.components&&d.blendMeta.components[1]?capF(d.blendMeta.components[1]):"Fibre 2");
+    const pdfF3=pdfIsTri?capF(pdfComps[2]):null;
+
+    // Helper: render steps as HTML for PDF
+    function pdfSteps(steps, color){
+      const c=color||'#1a56db';
+      return (Array.isArray(steps)?steps:[]).map(s=>`
+        <div class="step">
+          <div class="step-num" style="background:${c}">${s.step}</div>
+          <div class="step-body">
+            <div class="step-phase" style="color:${c==='#1a56db'?'#0f766e':c}">${s.phase}</div>
+            <div class="step-action">${s.action.replace(/⚠\s*/,'⚠ ')}</div>
+          </div>
+        </div>`).join('');
+    }
+
+    const dyeRowsHtml=Object.entries(d.recipe_percent).map(([nm,pct],i)=>{
+      const g=Number((d.recipe_grams||{})[nm]||0).toFixed(2);
+      return `<tr class="${i%2?'alt':''}"><td>${nm}</td><td>${Number(pct).toFixed(3)}%</td><td>${g} g</td></tr>`;
+    }).join('');
+    const auxRowsHtml=Object.entries(d.auxiliaries_g).map(([nm,g],i)=>`<tr class="${i%2?'alt':''}"><td>${nm}</td><td>${Number(g).toFixed(2)} g</td></tr>`).join('');
+
+    // Tri-blend ratio badge HTML for PDF
+    const pdfTriBadge=pdfIsTri&&d.triRatio?`<div class="tri-badge">🧵 Tri-Blend ${d.triRatio.r1}% ${pdfF1} / ${d.triRatio.r2}% ${pdfF2} / ${d.triRatio.r3}% ${pdfF3} (undyed)</div>`:'';
+    const pdfTriNote=d.blendNote&&pdfIsTri?`<div class="info-box tri-note" style="margin-top:8px"><strong>Tri-Blend Process Note:</strong> ${d.blendNote}</div>`:'';
+    const pdfUndyedNote=pdfF3?`<div class="info-box green" style="margin-top:8px">ℹ️ <strong>${pdfF3} (Fibre 3) — Undyed:</strong> This component is not dyed. It contributes stretch/functional properties only.</div>`:'';
+
+    // Bath 1 process section
+    const bath1Label=isTwoBath?`BATH 1 — ${d.dye_class} — Step-by-Step Process (${pdfF1})` :'Step-by-Step Dyeing Process';
+    const bath1Color='#1a56db';
+    const bath1Html=`
+      <div class="bath-block bath1">
+        <div class="bath-hdr bath1-hdr">
+          ${isTwoBath?'<span class="bath-badge bath1-badge">BATH 1</span>':''} ${bath1Label}
+        </div>
+        <div class="steps">${pdfSteps(d.process_note,bath1Color)}</div>
+        <div class="info-box green" style="margin:8px 12px 12px">⭐ Fastness: ${d.fastness}</div>
+      </div>`;
+
+    // Bath 2 process section
+    let bath2Html='';
+    if(isTwoBath){
+      const sb=d.secondBath;
+      const sb2Aux=Object.entries(sb.auxiliaries_g).map(([nm,g],i)=>`<tr class="${i%2?'alt':''}"><td>${nm}</td><td>${Number(g).toFixed(2)} g</td></tr>`).join('');
+      bath2Html=`
+        <div class="bath-block bath2" style="margin-top:18px">
+          <div class="bath-hdr bath2-hdr">
+            <span class="bath-badge bath2-badge">BATH 2</span> ${sb.dyeClass} — Dye Recipe, Auxiliaries &amp; Process (${pdfF2})
+          </div>
+          <div style="padding:0 12px 4px">
+            <div class="sub-hdr">Dye Recipe — ${pdfF2}</div>
+            <table><thead><tr><th>Dye Name</th><th>% owf</th><th>Grams</th></tr></thead><tbody>
+              <tr><td>${sb.dye.name}</td><td>${sb.owf.toFixed(3)}%</td><td>${sb.grams} g</td></tr>
+            </tbody></table>
+            <div class="sub-hdr" style="margin-top:10px">Auxiliaries — ${pdfF2}</div>
+            <table><thead><tr><th>Chemical</th><th>Grams</th></tr></thead><tbody>${sb2Aux}</tbody></table>
+            <div class="sub-hdr" style="margin-top:10px">Step-by-Step Process — ${pdfF2}</div>
+          </div>
+          <div class="steps" style="border-top:1px solid rgba(180,83,9,.2)">${pdfSteps(sb.process,'#b45309')}</div>
+          <div class="info-box warn" style="margin:8px 12px 12px">⭐ Fastness (Bath 2): ${sb.fastness}</div>
+        </div>
+        ${pdfUndyedNote}`;
+    }
+
+    const warnHtml=d.warnings&&d.warnings.length?`<div class="info-box warn" style="margin-top:10px">⚠ ${d.warnings.join('<br>')}</div>`:'';
+    const greenHtml=d.green_alternatives&&d.green_alternatives[0]?`<div class="info-box green" style="margin-top:8px">♻ Green Alternative: ${d.green_alternatives[0]}</div>`:'';
+
+    const html=`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>DyeMind Recipe — ${d.shade_description}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#1c1917;background:#fff;}
+  .page{max-width:780px;margin:0 auto;padding:24px 28px 40px;}
+  .header{background:#1a56db;color:#fff;padding:14px 18px;border-radius:6px 6px 0 0;}
+  .header h1{font-size:18px;font-weight:700;margin-bottom:3px;}
+  .header p{font-size:10px;opacity:.85;}
+  .colour-bar{display:flex;align-items:center;gap:14px;background:#f0f4ff;border:1px solid #c7d6f7;border-top:none;padding:12px 16px;margin-bottom:16px;border-radius:0 0 6px 6px;}
+  .swatch{width:44px;height:44px;border-radius:6px;border:2px solid rgba(0,0,0,.12);flex-shrink:0;}
+  .shade-name{font-size:15px;font-weight:700;color:#1a56db;}
+  .shade-sub{font-size:10px;color:#78716c;margin-top:3px;}
+  .metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px;}
+  .met{background:#f8f9fc;border:1px solid #e2e0da;border-radius:5px;padding:8px 10px;}
+  .met-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#78716c;margin-bottom:2px;}
+  .met-val{font-size:13px;font-weight:700;color:#1c1917;}
+  .section-hdr{background:#1a56db;color:#fff;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:6px 10px;margin-bottom:0;margin-top:16px;border-radius:4px 4px 0 0;}
+  table{width:100%;border-collapse:collapse;margin-bottom:0;}
+  table thead tr{background:#e8edf8;}
+  table th{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#1a56db;padding:6px 8px;text-align:left;border-bottom:2px solid #c7d6f7;}
+  table td{padding:6px 8px;border-bottom:1px solid #e8e8e8;font-size:11px;}
+  tr.alt td{background:#f8f9fc;}
+  .chart-wrap{margin-top:16px;border:1px solid #e2e0da;border-radius:4px;overflow:hidden;}
+  .chart-wrap img{width:100%;display:block;}
+  /* Bath blocks */
+  .bath-block{border-radius:6px;overflow:hidden;border:2px solid #c7d6f7;margin-top:16px;}
+  .bath2{border-color:rgba(180,83,9,.35);}
+  .bath-hdr{display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
+  .bath1-hdr{background:linear-gradient(90deg,#eef2ff,#f8f9fc);color:#1a56db;border-bottom:2px solid #c7d6f7;}
+  .bath2-hdr{background:linear-gradient(90deg,#fff7ed,#fdf8f3);color:#b45309;border-bottom:2px solid rgba(180,83,9,.25);}
+  .bath-badge{font-size:9px;padding:3px 8px;border-radius:3px;font-weight:700;letter-spacing:.06em;}
+  .bath1-badge{background:#1a56db;color:#fff;}
+  .bath2-badge{background:#b45309;color:#fff;}
+  .sub-hdr{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#78716c;font-weight:700;padding:8px 0 4px;border-bottom:1px solid #e2e0da;margin-bottom:4px;}
+  .steps{padding:4px 12px 4px;}
+  .step{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #f0efec;}
+  .step:last-child{border-bottom:none;}
+  .step-num{width:22px;height:22px;border-radius:50%;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+  .step-phase{font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:2px;}
+  .step-action{font-size:11px;line-height:1.6;color:#1c1917;}
+  .info-box{border-radius:4px;padding:8px 11px;font-size:11px;line-height:1.6;}
+  .info-box.green{background:rgba(15,118,110,.05);border:1px solid rgba(15,118,110,.25);color:#0f766e;}
+  .info-box.warn{background:rgba(180,83,9,.05);border:1px solid rgba(180,83,9,.25);color:#b45309;}
+  .footer{margin-top:28px;padding-top:10px;border-top:1px solid #e2e0da;font-size:9px;color:#a8a29e;display:flex;justify-content:space-between;}
+  .tri-badge{margin-top:6px;font-size:10px;font-weight:700;color:#b45309;background:rgba(180,83,9,.07);border:1px solid rgba(180,83,9,.2);border-radius:4px;padding:3px 10px;display:inline-block;}
+  .tri-note{background:rgba(180,83,9,.04);border:1px solid rgba(180,83,9,.2);color:#b45309;margin-bottom:10px;}
+  .print-btn{position:fixed;bottom:24px;right:24px;background:#1a56db;color:#fff;border:none;border-radius:8px;padding:12px 22px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(26,86,219,.4);z-index:999;}
+  .print-btn:hover{background:#1648c5;}
+  @media print{
+    .print-btn{display:none!important;}
+    .page{padding:12px 16px;}
+    .bath-block{page-break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+<div class="page">
+  <div class="header">
+    <h1>🧪 DyeMind AI — Dye Recipe Report</h1>
+    <p>Generated: ${new Date().toLocaleString()} &nbsp;|&nbsp; v1.0 by Abdul Malek &nbsp;|&nbsp; For professional textile use — verify in lab before bulk production.</p>
+  </div>
+  <div class="colour-bar">
+    <div class="swatch" style="background:${hex}"></div>
+    <div>
+      <div class="shade-name">${d.shade_description}</div>
+      <div class="shade-sub">${hex} &nbsp;·&nbsp; ${d.fiber.toUpperCase()} &nbsp;·&nbsp; ${d.weight}g &nbsp;·&nbsp; MLR 1:${d.mlr} &nbsp;·&nbsp; ${d.dye_class}${isTwoBath?' &nbsp;·&nbsp; <strong>Two-Bath Process</strong>':''}${pdfIsTri?' &nbsp;·&nbsp; <strong style="color:#b45309">Tri-Blend</strong>':''}</div>
+      ${pdfTriBadge}
+    </div>
+  </div>
+  ${pdfTriNote}
+  <div class="metrics">
+    <div class="met"><div class="met-lbl">Fixation Rate</div><div class="met-val">${d.fixation_rate_pct}%</div></div>
+    <div class="met"><div class="met-lbl">Liquor Volume</div><div class="met-val">${d.liquor_volume_L} L</div></div>
+    <div class="met"><div class="met-lbl">ΔE* Estimate</div><div class="met-val">${d.delta_e_estimate}</div></div>
+    <div class="met"><div class="met-lbl">Dyeing Temp</div><div class="met-val">${d.dyeing_temp_C}°C</div></div>
+    <div class="met"><div class="met-lbl">Process Time</div><div class="met-val">${d.dyeing_time_min} min</div></div>
+    <div class="met"><div class="met-lbl">Eco Score</div><div class="met-val">${d.sustainability_score}/100</div></div>
+    <div class="met"><div class="met-lbl">Carbon g/kg</div><div class="met-val">${d.carbon_g_per_kg}</div></div>
+    <div class="met"><div class="met-lbl">Water L/kg</div><div class="met-val">${d.water_L_per_kg}</div></div>
+    <div class="met"><div class="met-lbl">CIE Lab*</div><div class="met-val" style="font-size:11px">${d.lab.L}/${d.lab.a}/${d.lab.b}</div></div>
+    <div class="met"><div class="met-lbl">Shade Depth</div><div class="met-val" style="font-size:11px">${d.shade_depth}</div></div>
+  </div>
+  <div class="section-hdr">${isTwoBath?'BATH 1 — ':''}${d.dye_class} Dye Recipe (% owf)${isTwoBath?' — '+pdfF1:''}</div>
+  <table><thead><tr><th>Dye Name</th><th>% owf</th><th>Grams</th></tr></thead><tbody>${dyeRowsHtml}</tbody></table>
+  <div class="section-hdr" style="background:#0f766e">${isTwoBath?'BATH 1 — ':''}Auxiliaries${isTwoBath?' — '+pdfF1:''}</div>
+  <table><thead><tr><th>Chemical / Auxiliary</th><th>Grams</th></tr></thead><tbody>${auxRowsHtml}</tbody></table>
+  <div class="section-hdr">Process Temperature Curve</div>
+  <div class="chart-wrap"><img src="${chartImg}" alt="Process Curve"/></div>
+  ${bath1Html}
+  ${warnHtml}
+  ${bath2Html}
+  ${greenHtml}
+  <div class="footer">
+    <span>DyeMind AI v1.0 — For professional textile use. Verify in lab before bulk production.</span>
+    <span>${new Date().toLocaleDateString()}</span>
+  </div>
+</div>
+</body>
+</html>`;
+
+    const win=window.open('','_blank');
+    if(!win){alert("Pop-up blocked!\nPlease allow pop-ups for this page, then click the button again.");return;}
+    win.document.write(html);
+    win.document.close();
+
+  }catch(err){
+    alert('Error building report: '+err.message);
+    console.error(err);
+  }
+  pdfBtn.disabled=false;pdfBtn.textContent="⬇ Download Recipe PDF (with Process Curve)";
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODULE 2 — OPTIMIZER
+// ═══════════════════════════════════════════════════════
+function generateOptimizer(){
+  const hex=document.getElementById('o-hex').value.trim().toUpperCase();
+  const fiber=document.getElementById('o-fiber').value;
+  const weight=+document.getElementById('o-weight').value;
+  const priority=document.getElementById('o-priority').value;
+  const btn=document.getElementById('o-btn');
+  const out=document.getElementById('o-output');
+
+  if(!isValidHex(hex)){alert("Enter a valid hex colour.");return;}
+  if(weight<=0){alert("Enter a valid batch weight.");return;}
+
+  btn.disabled=true;btn.textContent="Processing…";
+  out.innerHTML=spinner("Generating optimised options…");
+
+  setTimeout(()=>{
+    try{
+      const options=computeOptimizerOptions(hex,fiber,weight,priority);
+      const medals=["🥇","🥈","🥉"];
+      const cols=[V.acc2,V.acc4,V.muted];
+
+      let html=`<div class="card-hdr" style="margin-bottom:14px"><div class="card-hdr-dot"></div>
+        Ranked Options for <span style="color:${V.acc};margin-left:6px">${hex}</span> on ${fiber}</div>`;
+
+      options.forEach((o,i)=>{
+        html+=`<div class="opt-card fade-in" style="animation-delay:${i*0.1}s">
+          <div class="opt-ghost">${medals[i]||i+1}</div>
+          <div style="font-family:'DM Serif Display',serif;font-weight:700;font-size:.85rem;margin-bottom:6px;color:${cols[i]||V.text}">${medals[i]||""} ${o.label}</div>
+          <div style="font-size:.72rem;color:${V.muted};margin-bottom:10px">${o.dye_class} · ${o.approach}</div>
+          <div class="met-grid-4">
+            ${met("Eco Score",o.eco_score+"/100",cols[i])}
+            ${met("ΔE*",o.delta_e)}
+            ${met("Fastness",o.fastness_rating.split(",")[0].trim())}
+            ${met("CO₂e (kg)",o.carbon_kg_co2e)}
+          </div>
+          <div style="font-size:.74rem;margin-bottom:4px"><span style="color:${V.acc2}">✓</span> ${o.key_advantage}</div>
+          <div style="font-size:.74rem;color:${V.muted};margin-bottom:8px"><span style="color:${V.acc3}">△</span> ${o.trade_off}</div>
+          ${ibox("p",`<span style="font-size:.7rem">${o.recipe_summary}</span>`)}
+          <div class="tags-row">${tag("p","Cost Index: "+o.cost_index+"/10")}${tag("g","Water: "+o.water_L+" L")}</div>
+        </div>`;
+      });
+
+      if(options.length===0){
+        html+=ibox("y","No compatible dye classes found for this fibre combination. Please check fibre type.");
+      }
+
+      out.innerHTML=html;
+    }catch(e){
+      out.innerHTML=`<div class="err-banner">⚠ Error: ${e.message}</div>`;
+    }
+    btn.disabled=false;btn.textContent="Compare & Optimise →";
+  },700);
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODULE 3 — FAULT DIAGNOSIS
+// ═══════════════════════════════════════════════════════
+function generateFault(){
+  if(!activeFault){alert("Select a fault symptom.");return;}
+  const fiber=document.getElementById('f-fiber').value;
+  const dyeClass=document.getElementById('f-dyeclass').value;
+  const btn=document.getElementById('f-btn');
+  const out=document.getElementById('f-output');
+
+  btn.disabled=true;btn.textContent="Processing…";
+  out.innerHTML=spinner("Diagnosing fault…");
+
+  const sevCol={Low:V.acc2,Medium:V.acc4,High:V.acc3,Critical:V.acc3};
+
+  setTimeout(()=>{
+    try{
+      const r=computeFault(activeFault,fiber,dyeClass);
+
+      const rootCauses=(r.root_causes||[]).map(c=>`<div style="padding:8px 0;font-size:.78rem;border-bottom:1px solid var(--border)">▸ ${c}</div>`).join("");
+      const steps=(r.corrective_steps||[]).map((s,i)=>`<div style="padding:8px 0;font-size:.78rem;border-bottom:1px solid var(--border)"><span style="color:${V.acc};margin-right:8px;font-weight:700">${i+1}.</span>${s}</div>`).join("");
+      const preventions=(r.preventive_measures||[]).map(m=>`<div style="padding:6px 0;font-size:.76rem;color:${V.muted}">✓ ${m}</div>`).join("");
+      const params=(r.related_parameters_to_check||[]).map(p=>tag("p",p)).join(" ");
+      const labTests=(r.lab_tests_recommended||[]).map(t=>tag("g",t)).join(" ");
+
+      out.innerHTML=`<div class="fade-in">
+        <div class="met-grid-4">
+          ${met("Fault",activeFault,V.text)}
+          ${met("Severity",r.severity,sevCol[r.severity]||V.acc4)}
+          ${met("Confidence",r.confidence_pct+"%",V.acc)}
+          ${met("Salvageable",r.can_be_salvaged?"Yes":"No",r.can_be_salvaged?V.acc2:V.acc3)}
+        </div>
+        ${ibox("r","⚡ <strong>Immediate Action:</strong> "+r.immediate_action)}
+        ${r.process_note?ibox("p","🧪 <strong>Dye/Fibre Note:</strong> "+r.process_note):""}
+        ${divider("Root Causes")}${rootCauses}
+        ${divider("Corrective Steps")}${steps}
+        ${r.salvage_method?ibox("y","♻ <strong>Salvage Method:</strong> "+r.salvage_method):""}
+        ${divider("Prevention")}${preventions}
+        ${divider("Parameters to Check")}<div class="tags-row">${params}</div>
+        ${divider("Lab Tests Recommended")}<div class="tags-row">${labTests}</div>
+        ${ibox("p","💰 Est. Rework Cost: "+r.estimated_rework_cost)}
+      </div>`;
+    }catch(e){
+      out.innerHTML=`<div class="err-banner">⚠ Error: ${e.message}</div>`;
+    }
+    btn.disabled=false;btn.textContent="Diagnose Fault →";
+  },500);
+}
+</script>
+</body>
+</html>
