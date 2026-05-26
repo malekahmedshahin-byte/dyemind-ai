@@ -2,7 +2,7 @@
   "name": "DyeMind AI",
   "short_name": "DyeMind",
   "description": "AI powered textile dyeing assistant",
-  "start_url": "/dyemind-ai/splash.html",
+  "start_url": "/dyemind-ai/index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1a56db",
